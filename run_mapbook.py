@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
 if __name__ == "__main__":
-	from optparse import OptionParser
-
-
+	import argparse
+	
+	parser = argparse.ArgumentParser(description='Create a mapbook',fromfile_prefix_chars='@')
