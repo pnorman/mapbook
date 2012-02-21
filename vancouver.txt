@@ -1,0 +1,11 @@
+# An example mapbook config for part of Vancouver, BC
+
+# Bottom left corner. Approximately 49.2026N 123.1396W
+startx 6309309
+starty -13707841
+
+width 2000
+
+pagewidth 468
+pageheight 576
+mapfile /home/pnorman/osm/mapnik/mapnik-style/osm.xml
