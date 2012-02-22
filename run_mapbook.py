@@ -46,9 +46,11 @@ if __name__ == "__main__":
 	parser.add_argument('--starty', type=float, help='South coordinate to map in mercator km',required=True)
 	parser.add_argument('--width', type=float, help='Width in mercator km of a map page',required=True)
 	parser.add_argument('--overwidth', type=float, help='Width in mercator km to add to each side', default=0.)
+	
+	# Page layout options
 	parser.add_argument('--pagewidth', type=float, help='Page width in points. Should be <= physical page width',required=True)
 	parser.add_argument('--pageheight', type=float, help='Page height in points. Should be <= physical page height',required=True)
-	
+	parser.add_argument('--pagepadding', type=float, help='Padding around the edges of each map',default=15.)
 	# File options
 	parser.add_argument('--mapfile',help='Mapnik XML file',default='osm.xml')
 	parser.add_argument('--outputfile',type=argparse.FileType('w'),help='Name of PDF file to create',default='map.pdf')
@@ -74,9 +76,8 @@ if __name__ == "__main__":
 	m.srs = merc.params()
 	
 	# Calculate some information
-	padding=10
-	mapwidth=opts.pagewidth-2*padding
-	mapheight=opts.pageheight-2*padding
+	mapwidth=opts.pagewidth-2*opts.pagepadding
+	mapheight=opts.pageheight-2*opts.pagepadding
 	
 	
 	# Lay out the grid of pages
@@ -95,10 +96,8 @@ if __name__ == "__main__":
 	
 	for y, row in enumerate(pagegrid):
 		for x, n in enumerate(row):
-			print 'pagegrid[{}][{}]={} and should be {}'.format(y,x,pagegrid[y][x], n)
 			thispage = Page(n,opts.startx+x*opts.width, opts.starty+y*opts.width*(mapheight/mapwidth),opts.width,(mapheight/mapwidth))
 		
-			
 			if y+1<len(pagegrid):
 				if x-1>=0:
 					thispage.ul=pagegrid[y+1][x-1]
@@ -122,9 +121,7 @@ if __name__ == "__main__":
 				
 			pages.append(thispage)
 			
-			
-#	pages.append(Page(1,opts.startx+opts.width, opts.starty,opts.width,(mapheight/mapwidth)))
-	
+				
 	# Start rendering pages
 	print 'Rendering a total of {} pages'.format(opts.rows*opts.columns)
 	
@@ -155,7 +152,7 @@ if __name__ == "__main__":
 		# Save the current clip region
 		cr.save()
 		
-		cr.rectangle(padding,padding,mapwidth,mapheight)
+		cr.rectangle(opts.pagepadding,opts.pagepadding,mapwidth,mapheight)
 		cr.clip()	
 		
 		mapnik.render(m,cr,0,0)
@@ -165,7 +162,7 @@ if __name__ == "__main__":
 		
 		cr.set_line_width(.25)
 		cr.set_source_rgb(0, 0, 0)
-		cr.rectangle(padding,padding,mapwidth,mapheight)
+		cr.rectangle(opts.pagepadding,opts.pagepadding,mapwidth,mapheight)
 		cr.stroke()
 		
 		cr.show_page()
