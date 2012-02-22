@@ -7,18 +7,18 @@ startx -13707837
 # Approximately width*cos(49) real meters
 width 7621
 
-#Number of rows (x dir) 
+#Number of rows (x dir)
 rows 2
 
 #Number of columns (y dir)
-columns 3
+columns 4
 
 
-# 6.5x8.0
-# 1/2 legal, minus a border of 1/2 inch
+# about 6.5x8.0
+# 1/2 legal, minus a border of 13pt on the top and 16pt on the sides
 
-pagewidth 468
-pageheight 576
+pagewidth 472
+pageheight 586
 
 mapfile /home/pnorman/osm/mapnik/mapnik-style/osm.xml
 outputfile vancouver.pdf

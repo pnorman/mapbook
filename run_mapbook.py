@@ -51,6 +51,7 @@ if __name__ == "__main__":
 	parser.add_argument('--pagewidth', type=float, help='Page width in points. Should be <= physical page width',required=True)
 	parser.add_argument('--pageheight', type=float, help='Page height in points. Should be <= physical page height',required=True)
 	parser.add_argument('--pagepadding', type=float, help='Padding around the edges of each map',default=15.)
+
 	# File options
 	parser.add_argument('--mapfile',help='Mapnik XML file',default='osm.xml')
 	parser.add_argument('--outputfile',help='Name of PDF file to create',default='map.pdf')
@@ -62,6 +63,7 @@ if __name__ == "__main__":
 
 	# Page options
 	parser.add_argument('--firstpage',type=int,help='Page number of first page', default=1)
+	
 	
 	opts=parser.parse_args()
 
@@ -170,9 +172,7 @@ if __name__ == "__main__":
 		
 		
 		# Draw adjacent page arrows
-		
-
-		cr.set_source_rgb(.2, 0.4, 0.8)
+		cr.set_source_rgb(0., 0., 0.)
 		if page.mr:
 			cr.move_to(opts.pagewidth, opts.pageheight/2)
 			cr.rel_line_to(-opts.pagepadding,opts.pagepadding)
@@ -223,51 +223,128 @@ if __name__ == "__main__":
 			
 		cr.fill()
 		
-		cr.select_font_face('Sans')
-		cr.set_font_size(opts.pagepadding/2)
-		offsetx = -opts.pagepadding/4
-		offsety = opts.pagepadding/8
-		cr.set_source_rgb(.2, 0.8, 0.4)		
-		
+		# Draw adjacent page numbers
+		cr.set_source_rgb(1., 1., 1.)		
+		arrowfont = pango.FontDescription("Sans " + str(opts.pagepadding*.38))
+		pc_cr=pangocairo.CairoContext(cr)
 		if page.mr:
-			cr.move_to(opts.pagewidth-opts.pagepadding/2+offsetx, opts.pageheight/2+offsety)
-			cr.show_text(str(page.mr))
+			layout=pc_cr.create_layout()
+			layout.set_width(int(opts.pagepadding*2))
+			layout.set_alignment(pango.ALIGN_CENTER)
+			layout.set_font_description(arrowfont)
+			layout.set_text(str(page.mr))
+			pc_cr.move_to(opts.pagewidth-opts.pagepadding*2/3, opts.pageheight/2-0.5*layout.get_size()[1]/pango.SCALE)
+			pc_cr.update_layout(layout)
+			pc_cr.show_layout(layout)
 			
 		if page.ur:
-			cr.move_to(opts.pagewidth-opts.pagepadding/2+offsetx, opts.pagepadding/2+offsety)
-			cr.show_text(str(page.ur))
+			layout=pc_cr.create_layout()
+			layout.set_width(int(opts.pagepadding*2))
+			layout.set_alignment(pango.ALIGN_CENTER)
+			layout.set_font_description(arrowfont)
+			layout.set_text(str(page.ur))
+			pc_cr.move_to(opts.pagewidth-opts.pagepadding*2/3, opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
+			pc_cr.update_layout(layout)
+			pc_cr.show_layout(layout)
 			
 		if page.uc:
-			cr.move_to(opts.pagewidth/2+offsetx, opts.pagepadding/2+offsety)
-			cr.show_text(str(page.uc))
-			
+			layout=pc_cr.create_layout()
+			layout.set_width(int(opts.pagepadding*2))
+			layout.set_alignment(pango.ALIGN_CENTER)
+			layout.set_font_description(arrowfont)
+			layout.set_text(str(page.uc))
+			pc_cr.move_to(opts.pagewidth/2, opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
+			pc_cr.update_layout(layout)
+			pc_cr.show_layout(layout)		
+		
 		if page.ul:
-			cr.move_to(opts.pagepadding/2+offsetx, opts.pagepadding/2+offsety)
-			cr.show_text(str(page.ul))
-			
+			layout=pc_cr.create_layout()
+			layout.set_width(int(opts.pagepadding*2))
+			layout.set_alignment(pango.ALIGN_CENTER)
+			layout.set_font_description(arrowfont)
+			layout.set_text(str(page.ul))
+			pc_cr.move_to(opts.pagepadding*2/3, opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
+			pc_cr.update_layout(layout)
+			pc_cr.show_layout(layout)		
+
 		if page.ml:
-			cr.move_to(opts.pagepadding/2+offsetx, opts.pageheight/2+offsety)
-			cr.show_text(str(page.ml))
-			
+			layout=pc_cr.create_layout()
+			layout.set_width(int(opts.pagepadding*2))
+			layout.set_alignment(pango.ALIGN_CENTER)
+			layout.set_font_description(arrowfont)
+			layout.set_text(str(page.ml))
+			pc_cr.move_to(opts.pagepadding*2/3, opts.pageheight/2-0.5*layout.get_size()[1]/pango.SCALE)
+			pc_cr.update_layout(layout)
+			pc_cr.show_layout(layout)
+
 		if page.dl:
-			cr.move_to(opts.pagepadding/2+offsetx, opts.pageheight-opts.pagepadding/2+offsety)
-			cr.show_text(str(page.dl))
+			layout=pc_cr.create_layout()
+			layout.set_width(int(opts.pagepadding*2))
+			layout.set_alignment(pango.ALIGN_CENTER)
+			layout.set_font_description(arrowfont)
+			layout.set_text(str(page.dl))
+			pc_cr.move_to(opts.pagepadding*2/3, opts.pageheight-opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
+			pc_cr.update_layout(layout)
+			pc_cr.show_layout(layout)
 			
 		if page.dc:
-			cr.move_to(opts.pagewidth/2+offsetx, opts.pageheight-opts.pagepadding/2+offsety)
-			cr.show_text(str(page.dc))
-
+			layout=pc_cr.create_layout()
+			layout.set_width(int(opts.pagepadding*2))
+			layout.set_alignment(pango.ALIGN_CENTER)
+			layout.set_font_description(arrowfont)
+			layout.set_text(str(page.dc))
+			pc_cr.move_to(opts.pagewidth/2, opts.pageheight-opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
+			pc_cr.update_layout(layout)
+			pc_cr.show_layout(layout)
+		
 		if page.dr:
-			cr.move_to(opts.pagewidth-opts.pagepadding/2+offsetx, opts.pageheight-opts.pagepadding/2+offsety)
-			cr.show_text(str(page.dr))
+			layout=pc_cr.create_layout()
+			layout.set_width(int(opts.pagepadding*2))
+			layout.set_alignment(pango.ALIGN_CENTER)
+			layout.set_font_description(arrowfont)
+			layout.set_text(str(page.dr))
+			pc_cr.move_to(opts.pagewidth-opts.pagepadding*2/3, opts.pageheight-opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
+			pc_cr.update_layout(layout)
+			pc_cr.show_layout(layout)
+		
+		
+		
+		if pagecount % 2 == 1: 
+			cr.rectangle(opts.pagepadding*2.75,opts.pageheight-opts.pagepadding, opts.pagepadding*2, opts.pagepadding*.8)
+		else:
+			cr.rectangle(opts.pagewidth-opts.pagepadding*4.75,opts.pageheight-opts.pagepadding, opts.pagepadding*2, opts.pagepadding*.8)
 			
-		cr.stroke()
+		cr.set_source_rgb(0.95, 0.95, 0.95)
+		cr.fill_preserve()
+		cr.set_source_rgb(0., 0., 0.)
+		cr.stroke_preserve()
+		
+		# Draw mapnumber text
+		cr.set_source_rgb(0., 0., 0.)
+		#pc_cr=pangocairo.CairoContext(cr)
+		layout=pc_cr.create_layout()
+		layout.set_width(int(opts.pagepadding*4))
+		if pagecount % 2 == 1: 
+			layout.set_alignment(pango.ALIGN_LEFT)
+		else:
+			layout.set_alignment(pango.ALIGN_RIGHT)
+			
+		layout.set_font_description(pango.FontDescription("Sans " + str(opts.pagepadding*.5)))
+		layout.set_text(str(page.mapnumber))
+		if pagecount % 2 == 1: 		
+			pc_cr.move_to(opts.pagepadding*3,opts.pageheight-opts.pagepadding)
+		else:
+			pc_cr.move_to(opts.pagewidth-opts.pagepadding*3,opts.pageheight-opts.pagepadding)
+		
+		pc_cr.update_layout(layout)
+		pc_cr.show_layout(layout)
+
+		
 		
 		# Move to the next page
 		cr.show_page()
 		pagecount = pagecount + 1
 
-	
 	book.finish()
 
 	
