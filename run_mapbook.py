@@ -53,7 +53,7 @@ if __name__ == "__main__":
 	parser.add_argument('--pagepadding', type=float, help='Padding around the edges of each map',default=15.)
 	# File options
 	parser.add_argument('--mapfile',help='Mapnik XML file',default='osm.xml')
-	parser.add_argument('--outputfile',type=argparse.FileType('w'),help='Name of PDF file to create',default='map.pdf')
+	parser.add_argument('--outputfile',help='Name of PDF file to create',default='map.pdf')
 	
 	# Grid options
 	parser.add_argument('--rows',type=int,help='Number of rows of map pages', default=1)
