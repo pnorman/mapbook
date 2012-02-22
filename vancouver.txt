@@ -1,8 +1,8 @@
 # An example mapbook config for part of Vancouver, BC
 
 # Bottom left corner. Approximately 49.2026N 123.1396W
-startx 6309309
-starty -13707841
+starty 6309308
+startx -13707837
 
 width 2000
 

@@ -2,8 +2,11 @@
 
 
 class Page:
-	def __init__(self, surface, mapnumber):
-		self.surface=surface
+	def __init__(self, mapnumber, minx, miny, width, ratio):
+		#bounds = (opts.startx, opts.starty, opts.startx+opts.width, opts.starty+opts.width*(opts.pageheight/opts.pagewidth))
+	
+		self.bounds=(minx, miny, minx+width, miny+width*ratio)
+
 		self.mapnumber=mapnumber
 
 if __name__ == "__main__":
@@ -33,29 +36,52 @@ if __name__ == "__main__":
 	opts=parser.parse_args()
 
 	print opts
-		
+	
 	import mapnik2 as mapnik
 	import cairo
+	
+	merc = mapnik.Projection('+init=epsg:3857')
 	
 	padding=10.
 	mapwidth=opts.pagewidth-2*padding
 	mapheight=opts.pageheight-2*padding
+	
 	# minx, miny, maxx, maxy
-	bounds = (opts.startx, opts.starty, opts.startx+opts.width, opts.starty+opts.width*(mapheight/mapwidth))
-	m = mapnik.Map(int(mapwidth),int(mapheight),'+init=epsg:900913')
-	mapnik.load_map(m,opts.mapfile)
+	bounds = (opts.startx, opts.starty, opts.startx+opts.width, opts.starty+opts.width*(opts.pageheight/opts.pagewidth))
+	pages = []
+	
+	pages.append(Page(1,opts.startx, opts.starty,opts.width,(opts.pageheight/opts.pagewidth)))
+	
+	
+	m = mapnik.Map(int(opts.pagewidth),int(opts.pageheight))
+	m.srs = merc.params()
+		
 	m.zoom_to_box(mapnik.Box2d(*bounds))
 	
-	surface = cairo.PDFSurface("test.pdf",opts.pagewidth,opts.pageheight)
-	book = Page(cairo.PDFSurface("test.pdf",opts.pagewidth,opts.pageheight),0)
+	mapnik.load_map(m,opts.mapfile)
 	
-	cr = cairo.Context(book.surface)
+	book = cairo.PDFSurface("test.pdf",opts.pagewidth,opts.pageheight)
+
 	
-	cr.set_line_width(1)
-	cr.set_source_rgb(0.22, 0.08, 0.69)
+	cr = cairo.Context(book)
+	
+	# Save the current clip region
+	cr.save()
+	
+	cr.rectangle(10,10,mapwidth,mapheight)
+	cr.clip()	
+	
+	mapnik.render(m,cr,0,0)
+	
+	# Restore the clip region
+	cr.restore()
+	
+	cr.set_line_width(.25)
+	cr.set_source_rgb(0, 0, 0)
 	cr.rectangle(10,10,mapwidth,mapheight)
 	cr.stroke()
+
 	
-	
+	book.finish()
 
 	
