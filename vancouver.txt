@@ -20,4 +20,4 @@ pagewidth 468
 pageheight 576
 
 mapfile /home/pnorman/osm/mapnik/mapnik-style/osm.xml
-outputfile foo.pdf
+outputfile vancouver.pdf
