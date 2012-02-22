@@ -4,7 +4,8 @@
 starty 6309308
 startx -13707837
 
-width 2000
+# Approximately width*cos(49) real meters
+width 7621
 
 #Number of rows (x dir) 
 rows 2

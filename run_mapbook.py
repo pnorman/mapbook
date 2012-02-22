@@ -69,6 +69,8 @@ if __name__ == "__main__":
 	
 	import mapnik2 as mapnik
 	import cairo
+	import pango
+	import pangocairo
 	
 	# Initial mapnik setup
 	merc = mapnik.Projection('+init=epsg:3857')
@@ -153,7 +155,7 @@ if __name__ == "__main__":
 		cr.save()
 		
 		cr.rectangle(opts.pagepadding,opts.pagepadding,mapwidth,mapheight)
-		cr.clip()	
+		cr.clip()
 		
 		mapnik.render(m,cr,0,0)
 	
@@ -165,6 +167,103 @@ if __name__ == "__main__":
 		cr.rectangle(opts.pagepadding,opts.pagepadding,mapwidth,mapheight)
 		cr.stroke()
 		
+		
+		
+		# Draw adjacent page arrows
+		
+
+		cr.set_source_rgb(.2, 0.4, 0.8)
+		if page.mr:
+			cr.move_to(opts.pagewidth, opts.pageheight/2)
+			cr.rel_line_to(-opts.pagepadding,opts.pagepadding)
+			cr.rel_line_to(0,-2*opts.pagepadding)
+			cr.close_path()
+		
+		if page.ur:
+			cr.move_to(opts.pagewidth,0)
+			cr.rel_line_to(0,2*opts.pagepadding)
+			cr.rel_line_to(-2*opts.pagepadding,-2*opts.pagepadding)
+			cr.close_path()
+
+		if page.uc:
+			cr.move_to(opts.pagewidth/2,0.)
+			cr.rel_line_to(opts.pagepadding,opts.pagepadding)
+			cr.rel_line_to(-2*opts.pagepadding,0)
+			cr.close_path()
+		
+		if page.ul:
+			cr.move_to(0,0)
+			cr.rel_line_to(2*opts.pagepadding,0)
+			cr.rel_line_to(-2*opts.pagepadding,2*opts.pagepadding)
+			cr.close_path()
+		
+		if page.ml:
+			cr.move_to(0,opts.pageheight/2)
+			cr.rel_line_to(opts.pagepadding,-opts.pagepadding)
+			cr.rel_line_to(0,2*opts.pagepadding)
+			cr.close_path()
+		
+		if page.dl:
+			cr.move_to(0,opts.pageheight)
+			cr.rel_line_to(2*opts.pagepadding,0)
+			cr.rel_line_to(-2*opts.pagepadding,-2*opts.pagepadding)
+			cr.close_path()
+		
+		if page.dc:
+			cr.move_to(opts.pagewidth/2,opts.pageheight)
+			cr.rel_line_to(opts.pagepadding,-opts.pagepadding)
+			cr.rel_line_to(-2*opts.pagepadding,0)
+			cr.close_path()
+		
+		if page.dr:
+			cr.move_to(opts.pagewidth,opts.pageheight)
+			cr.rel_line_to(-2*opts.pagepadding,0)
+			cr.rel_line_to(2*opts.pagepadding,-2*opts.pagepadding)
+			cr.close_path
+			
+		cr.fill()
+		
+		cr.select_font_face('Sans')
+		cr.set_font_size(opts.pagepadding/2)
+		offsetx = -opts.pagepadding/4
+		offsety = opts.pagepadding/8
+		cr.set_source_rgb(.2, 0.8, 0.4)		
+		
+		if page.mr:
+			cr.move_to(opts.pagewidth-opts.pagepadding/2+offsetx, opts.pageheight/2+offsety)
+			cr.show_text(str(page.mr))
+			
+		if page.ur:
+			cr.move_to(opts.pagewidth-opts.pagepadding/2+offsetx, opts.pagepadding/2+offsety)
+			cr.show_text(str(page.ur))
+			
+		if page.uc:
+			cr.move_to(opts.pagewidth/2+offsetx, opts.pagepadding/2+offsety)
+			cr.show_text(str(page.uc))
+			
+		if page.ul:
+			cr.move_to(opts.pagepadding/2+offsetx, opts.pagepadding/2+offsety)
+			cr.show_text(str(page.ul))
+			
+		if page.ml:
+			cr.move_to(opts.pagepadding/2+offsetx, opts.pageheight/2+offsety)
+			cr.show_text(str(page.ml))
+			
+		if page.dl:
+			cr.move_to(opts.pagepadding/2+offsetx, opts.pageheight-opts.pagepadding/2+offsety)
+			cr.show_text(str(page.dl))
+			
+		if page.dc:
+			cr.move_to(opts.pagewidth/2+offsetx, opts.pageheight-opts.pagepadding/2+offsety)
+			cr.show_text(str(page.dc))
+
+		if page.dr:
+			cr.move_to(opts.pagewidth-opts.pagepadding/2+offsetx, opts.pageheight-opts.pagepadding/2+offsety)
+			cr.show_text(str(page.dr))
+			
+		cr.stroke()
+		
+		# Move to the next page
 		cr.show_page()
 		pagecount = pagecount + 1
 
