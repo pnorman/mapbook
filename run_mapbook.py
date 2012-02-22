@@ -40,23 +40,37 @@ if __name__ == "__main__":
 	import mapnik2 as mapnik
 	import cairo
 	
+	# Initial mapnik setup
 	merc = mapnik.Projection('+init=epsg:3857')
+	m = mapnik.Map(int(opts.pagewidth),int(opts.pageheight))
+	m.srs = merc.params()
 	
-	padding=10.
+	
+	padding=10
 	mapwidth=opts.pagewidth-2*padding
 	mapheight=opts.pageheight-2*padding
 	
 	# minx, miny, maxx, maxy
-	bounds = (opts.startx, opts.starty, opts.startx+opts.width, opts.starty+opts.width*(opts.pageheight/opts.pagewidth))
 	pages = []
 	
+
 	pages.append(Page(1,opts.startx, opts.starty,opts.width,(opts.pageheight/opts.pagewidth)))
 	
+	#pages[0].bounds[0] - overwidth - 0.5 (mwidth-width)
+	# = ............                   (opts.pagewidth/mapwidth-1)*width
+	
+	bbox = (\
+	pages[0].bounds[0] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[2] - pages[0].bounds[0]),\
+	pages[0].bounds[1] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[3] - pages[0].bounds[1]),\
+	pages[0].bounds[2] + 2*opts.overwidth + 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[2] - pages[0].bounds[0]),\
+	pages[0].bounds[1] + 2*opts.overwidth + 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[3] - pages[0].bounds[1])\
+	)
+
 	
 	m = mapnik.Map(int(opts.pagewidth),int(opts.pageheight))
 	m.srs = merc.params()
 		
-	m.zoom_to_box(mapnik.Box2d(*bounds))
+	m.zoom_to_box(mapnik.Box2d(*bbox))
 	
 	mapnik.load_map(m,opts.mapfile)
 	
@@ -68,7 +82,7 @@ if __name__ == "__main__":
 	# Save the current clip region
 	cr.save()
 	
-	cr.rectangle(10,10,mapwidth,mapheight)
+	cr.rectangle(padding,padding,mapwidth,mapheight)
 	cr.clip()	
 	
 	mapnik.render(m,cr,0,0)
@@ -78,7 +92,7 @@ if __name__ == "__main__":
 	
 	cr.set_line_width(.25)
 	cr.set_source_rgb(0, 0, 0)
-	cr.rectangle(10,10,mapwidth,mapheight)
+	cr.rectangle(padding,padding,mapwidth,mapheight)
 	cr.stroke()
 
 	
