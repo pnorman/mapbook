@@ -130,10 +130,7 @@ if __name__ == "__main__":
 	print 'Rendering a total of {} pages'.format(opts.rows*opts.columns)
 	
 	book = cairo.PDFSurface(opts.outputfile,opts.pagewidth,opts.pageheight)
-	#pages[0].bounds[0] - overwidth - 0.5 (mwidth-width)
-	# = ............                   (opts.pagewidth/mapwidth-1)*width
-	# minx, miny, maxx, maxy
-	
+
 	pagecount = opts.firstpage
 	
 	ctx = pangocairo.CairoContext(cairo.Context(book))
@@ -145,6 +142,11 @@ if __name__ == "__main__":
 	for page in pages:
 	
 		print 'Rendering map {} on page {}'.format(page.mapnumber, pagecount)
+		
+		#pages[0].bounds[0] - overwidth - 0.5 * (mwidth-width)
+		# = . . .                             *(opts.pagewidth/mapwidth-1)*width
+		# minx, miny, maxx, maxy
+
 		bbox = (\
 		page.bounds[0] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[2] - pages[0].bounds[0]),\
 		page.bounds[1] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[3] - pages[0].bounds[1]),\
@@ -352,8 +354,6 @@ if __name__ == "__main__":
 		ctx.update_layout(layout)
 		ctx.show_layout(layout)
 
-		
-		
 		# Move to the next page
 		ctx.show_page()
 		pagecount = pagecount + 1
