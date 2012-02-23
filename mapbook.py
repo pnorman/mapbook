@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
 	# Page options
 	parser.add_argument('--firstpage',type=int,help='Page number of first page', default=1)
-	
+	parser.add_argument('--blankfirst',action='store_true',help='Insert an empty page at the beginning of the PDF',default=False)
 	
 	opts=parser.parse_args()
 
@@ -137,9 +137,10 @@ if __name__ == "__main__":
 	pagecount = opts.firstpage
 	
 	cr = cairo.Context(book)
-		
-	cr.show_page()
-	pagecount = pagecount + 1
+	
+	if opts.blankfirst:
+		cr.show_page()
+		pagecount = pagecount + 1
 
 	for page in pages:
 	
