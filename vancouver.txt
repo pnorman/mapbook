@@ -6,6 +6,7 @@ startx -13707837
 
 # Approximately width*cos(49) real meters
 width 7621
+overwidth 176
 
 #Number of rows (x dir)
 rows 2
