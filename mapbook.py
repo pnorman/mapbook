@@ -91,18 +91,18 @@ if __name__ == "__main__":
 		
 			if y+1<len(pagegrid):
 				thispage.uc=pagegrid[y+1][x]
-				
+
 			if x-1>=0:
 				thispage.ml=pagegrid[y][x-1]
 
 			if x+1<len(pagegrid[y]):
 				thispage.mr=pagegrid[y][x+1]
-				
+
 			if y-1>=0:
 				thispage.dc=pagegrid[y-1][x]
-				
+
 			pages.append(thispage)
-				
+		
 	# Start rendering pages
 	print 'Rendering a total of {} pages'.format(opts.rows*opts.columns)
 	
