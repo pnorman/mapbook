@@ -134,7 +134,7 @@ if __name__ == "__main__":
 		m.zoom_to_box(mapnik.Box2d(*bbox))
 
 		mapnik.load_map(m,opts.mapfile)
-	
+
 		# Save the current clip region
 		ctx.save()
 
@@ -183,8 +183,7 @@ if __name__ == "__main__":
 			ctx.rel_line_to(opts.pagepadding,-opts.pagepadding)
 			ctx.rel_line_to(-2*opts.pagepadding,0)
 			ctx.close_path()
-		
-			
+
 		ctx.fill()
 		
 		# Draw adjacent page numbers
@@ -201,7 +200,7 @@ if __name__ == "__main__":
 				ctx.move_to(opts.pagewidth-opts.pagepadding*2/3, opts.pageheight/2-0.5*layout.get_size()[1]/pango.SCALE)
 				ctx.update_layout(layout)
 				ctx.show_layout(layout)
-				
+
 		else:
 			if page.left:
 				layout=ctx.create_layout()
@@ -235,16 +234,14 @@ if __name__ == "__main__":
 		
 		# Draw mapnumber text
 		if pagecount % 2 != 1: 
-			ctx.rectangle(opts.pagepadding*2.75,opts.pageheight-opts.pagepadding, opts.pagepadding*2, opts.pagepadding*.8)
+			ctx.rectangle(0.,opts.pageheight-opts.pagepadding, opts.pagepadding*2, opts.pagepadding)
 		else:
-			ctx.rectangle(opts.pagewidth-opts.pagepadding*4.75,opts.pageheight-opts.pagepadding, opts.pagepadding*2, opts.pagepadding*.8)
+			ctx.rectangle(opts.pagewidth-opts.pagepadding*2,opts.pageheight-opts.pagepadding, opts.pagepadding*2, opts.pagepadding)
 			
-		ctx.set_source_rgb(0.95, 0.95, 0.95)
-		ctx.fill_preserve()
 		ctx.set_source_rgb(0., 0., 0.)
-		ctx.stroke_preserve()
+		ctx.fill()
 
-		ctx.set_source_rgb(0., 0., 0.)
+		ctx.set_source_rgb(1., 1., 1.)
 		layout=ctx.create_layout()
 		layout.set_width(int(opts.pagepadding*4))
 		if pagecount % 2 != 1: 
@@ -255,9 +252,9 @@ if __name__ == "__main__":
 		layout.set_font_description(pango.FontDescription("Sans " + str(opts.pagepadding*.5)))
 		layout.set_text(str(page.mapnumber))
 		if pagecount % 2 != 1: 		
-			ctx.move_to(opts.pagepadding*3,opts.pageheight-opts.pagepadding)
+			ctx.move_to(opts.pagepadding,opts.pageheight-opts.pagepadding)
 		else:
-			ctx.move_to(opts.pagewidth-opts.pagepadding*3,opts.pageheight-opts.pagepadding)
+			ctx.move_to(opts.pagewidth-opts.pagepadding,opts.pageheight-opts.pagepadding)
 		
 		ctx.update_layout(layout)
 		ctx.show_layout(layout)
