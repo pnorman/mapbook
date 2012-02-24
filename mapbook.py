@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 class Page:
 	def __init__(self, mapnumber, minx, miny, width, ratio):
 	
@@ -65,8 +64,6 @@ if __name__ == "__main__":
 	parser.add_argument('--blankfirst',action='store_true',help='Insert an empty page at the beginning of the PDF',default=False)
 	
 	opts=parser.parse_args()
-
-	print opts
 	
 	import mapnik2 as mapnik
 	import cairo
@@ -157,8 +154,6 @@ if __name__ == "__main__":
 		m.zoom_to_box(mapnik.Box2d(*bbox))
 
 		mapnik.load_map(m,opts.mapfile)
-	
-		
 	
 		# Save the current clip region
 		ctx.save()
@@ -334,7 +329,6 @@ if __name__ == "__main__":
 		ctx.fill_preserve()
 		ctx.set_source_rgb(0., 0., 0.)
 		ctx.stroke_preserve()
-		
 
 		ctx.set_source_rgb(0., 0., 0.)
 		layout=ctx.create_layout()
