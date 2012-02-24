@@ -78,9 +78,9 @@ if __name__ == "__main__":
 	# [0,0] [0,1] [0,2] [0,3]
 	
 	pagegrid = []
-	
 	for y in range(opts.rows):
 		pagegrid.append(range(opts.firstmap+y*opts.columns,opts.firstmap+(1+y)*opts.columns))
+	
 	
 	# Define the pages
 	pages = []
@@ -105,6 +105,10 @@ if __name__ == "__main__":
 		
 	# Start rendering pages
 	print 'Rendering a total of {} pages'.format(opts.rows*opts.columns)
+
+	imagefile=tempfile.NamedTemporaryFile(suffix='.png')
+
+	imagesurface=cairo.ImageSurface(opts.pagewidth*opts.dpi,opts.pageheight*opts.dpi)
 	
 	book = cairo.PDFSurface(opts.outputfile,opts.pagewidth,opts.pageheight)
 
@@ -134,7 +138,7 @@ if __name__ == "__main__":
 		m.zoom_to_box(mapnik.Box2d(*bbox))
 
 		mapnik.load_map(m,opts.mapfile)
-
+		mapnik.render(m,imagefile,1.0,0,0)
 		# Save the current clip region
 		ctx.save()
 
@@ -144,7 +148,7 @@ if __name__ == "__main__":
 			ctx.rectangle(0,opts.pagepadding,mapwidth,mapheight)
 		ctx.clip()
 		
-		mapnik.render(m,ctx,0,0)
+		#mapnik.render(m,ctx,0,0)
 	
 	# Restore the clip region
 		ctx.restore()
