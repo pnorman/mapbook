@@ -9,10 +9,10 @@ width 7621
 overwidth 176
 
 #Number of rows (x dir)
-rows 2
+rows 1
 
 #Number of columns (y dir)
-columns 4
+columns 1
 
 
 # about 6.5x8.0

@@ -53,6 +53,7 @@ if __name__ == "__main__":
 	# Page options
 	parser.add_argument('--firstpage',type=int,help='Page number of first page', default=1)
 	parser.add_argument('--blankfirst',action='store_true',help='Insert an empty page at the beginning of the PDF',default=False)
+	parser.add_argument('--dpi',type=float,help='DPI of mapnik image', default=300.)
 	
 	opts=parser.parse_args()
 	
@@ -64,8 +65,11 @@ if __name__ == "__main__":
 	
 	# Initial mapnik setup
 	merc = mapnik.Projection('+init=epsg:3857')
-	m = mapnik.Map(int(opts.pagewidth),int(opts.pageheight))
+	m = mapnik.Map(int(opts.pagewidth*opts.dpi/72.0),int(opts.pageheight*opts.dpi/72.0))
+	# Fixme: specify srs?
 	m.srs = merc.params()
+	
+	im = mapnik.Image(int(opts.pagewidth*opts.dpi/72.0),int(opts.pageheight*opts.dpi/72.0))
 	
 	# Calculate some information
 	mapwidth=opts.pagewidth-opts.pagepadding
@@ -106,9 +110,6 @@ if __name__ == "__main__":
 	# Start rendering pages
 	print 'Rendering a total of {} pages'.format(opts.rows*opts.columns)
 
-	imagefile=tempfile.NamedTemporaryFile(suffix='.png')
-
-	imagesurface=cairo.ImageSurface(opts.pagewidth*opts.dpi,opts.pageheight*opts.dpi)
 	
 	book = cairo.PDFSurface(opts.outputfile,opts.pagewidth,opts.pageheight)
 
@@ -138,16 +139,26 @@ if __name__ == "__main__":
 		m.zoom_to_box(mapnik.Box2d(*bbox))
 
 		mapnik.load_map(m,opts.mapfile)
-		mapnik.render(m,imagefile,1.0,0,0)
+		mapnik.render(m,im,opts.dpi/90.7)
+		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
+		im.save(imagefile.name)
+		imgs = cairo.ImageSurface.create_from_png(imagefile)
+
+		print 'Temp file is {}'.format(imagefile.name)
 		# Save the current clip region
 		ctx.save()
+		# Save the current scale
 
 		if pagecount % 2 != 1:
 			ctx.rectangle(opts.pagepadding,opts.pagepadding,mapwidth,mapheight)
 		else:
 			ctx.rectangle(0,opts.pagepadding,mapwidth,mapheight)
 		ctx.clip()
-		
+
+		ctx.scale(72/opts.dpi,72/opts.dpi)
+		ctx.set_source_surface(imgs)
+	
+		ctx.paint()
 		#mapnik.render(m,ctx,0,0)
 	
 	# Restore the clip region
