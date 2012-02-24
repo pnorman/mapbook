@@ -6,10 +6,8 @@ class Page:
 		self.bounds=(minx, miny, minx+width, miny+width*ratio)
 
 		self.mapnumber=mapnumber
-
 		
 		# Adjacent pages in the grid
-
 		self.up = None
 		self.left = None
 		self.right = None
