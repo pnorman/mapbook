@@ -9,18 +9,11 @@ class Page:
 
 		
 		# Adjacent pages in the grid
-		# ul uc ur
-		# ml mc mr
-		# dl dc dr
 
-		self.ul = None
-		self.uc = None
-		self.ur = None
-		self.ml = None
-		self.mr = None
-		self.dl = None
-		self.dc = None
-		self.dr = None
+		self.up = None
+		self.left = None
+		self.right = None
+		self.down = None
 
 if __name__ == "__main__":
 	import argparse
@@ -98,13 +91,8 @@ if __name__ == "__main__":
 		for x, n in enumerate(row):
 			thispage = Page(n,opts.startx+x*opts.width, opts.starty+y*opts.width*(mapheight/mapwidth),opts.width,(mapheight/mapwidth))
 		
-			# Skip over the corners
 			if y+1<len(pagegrid):
-				#if x-1>=0:
-				#	thispage.ul=pagegrid[y+1][x-1]
 				thispage.uc=pagegrid[y+1][x]
-				#if x+1<len(pagegrid[y+1]):
-				#	thispage.ur=pagegrid[y+1][x+1]
 				
 			if x-1>=0:
 				thispage.ml=pagegrid[y][x-1]
@@ -113,12 +101,7 @@ if __name__ == "__main__":
 				thispage.mr=pagegrid[y][x+1]
 				
 			if y-1>=0:
-				#if x-1>=0:
-				#	thispage.dl=pagegrid[y-1][x-1]
 				thispage.dc=pagegrid[y-1][x]
-				#if x+1<len(pagegrid[y-1]):
-				#	thispage.dr=pagegrid[y-1][x+1]
-				
 				
 			pages.append(thispage)
 				
@@ -181,49 +164,23 @@ if __name__ == "__main__":
 		# Draw adjacent page arrows
 		ctx.set_source_rgb(0., 0., 0.)
 		if pagecount % 2 != 1:
-			if page.ul:
-				ctx.move_to(0,0)
-				ctx.rel_line_to(2*opts.pagepadding,0)
-				ctx.rel_line_to(-2*opts.pagepadding,2*opts.pagepadding)
-				ctx.close_path()
-			
-			if page.ml:
+			if page.left:
 				ctx.move_to(0,opts.pageheight/2)
 				ctx.rel_line_to(opts.pagepadding,-opts.pagepadding)
 				ctx.rel_line_to(0,2*opts.pagepadding)
 				ctx.close_path()
-			
-			if page.dl:
-				ctx.move_to(0,opts.pageheight)
-				ctx.rel_line_to(2*opts.pagepadding,0)
-				ctx.rel_line_to(-2*opts.pagepadding,-2*opts.pagepadding)
-				ctx.close_path()
 		else:
-			if page.dr:
-				ctx.move_to(opts.pagewidth,opts.pageheight)
-				ctx.rel_line_to(-2*opts.pagepadding,0)
-				ctx.rel_line_to(2*opts.pagepadding,-2*opts.pagepadding)
-				ctx.close_path
-			
-			if page.mr:
+			if page.right:
 				ctx.move_to(opts.pagewidth, opts.pageheight/2)
 				ctx.rel_line_to(-opts.pagepadding,opts.pagepadding)
 				ctx.rel_line_to(0,-2*opts.pagepadding)
 				ctx.close_path()
-			
-			if page.ur:
-				ctx.move_to(opts.pagewidth,0)
-				ctx.rel_line_to(0,2*opts.pagepadding)
-				ctx.rel_line_to(-2*opts.pagepadding,-2*opts.pagepadding)
-				ctx.close_path()
-
-		if page.uc:
+		if page.up:
 			ctx.move_to(opts.pagewidth/2,0.)
 			ctx.rel_line_to(opts.pagepadding,opts.pagepadding)
 			ctx.rel_line_to(-2*opts.pagepadding,0)
 			ctx.close_path()
-
-		if page.dc:
+		if page.down:
 			ctx.move_to(opts.pagewidth/2,opts.pageheight)
 			ctx.rel_line_to(opts.pagepadding,-opts.pagepadding)
 			ctx.rel_line_to(-2*opts.pagepadding,0)
@@ -237,83 +194,43 @@ if __name__ == "__main__":
 		arrowfont = pango.FontDescription("Sans " + str(opts.pagepadding*.38))
 		
 		if pagecount % 2 != 1:
-			if page.dr:
+			if page.right:
 				layout=ctx.create_layout()
 				layout.set_width(int(opts.pagepadding*2))
 				layout.set_alignment(pango.ALIGN_CENTER)
 				layout.set_font_description(arrowfont)
-				layout.set_text(str(page.dr))
-				ctx.move_to(opts.pagewidth-opts.pagepadding*2/3, opts.pageheight-opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
-				ctx.update_layout(layout)
-				ctx.show_layout(layout)		
-			
-			if page.mr:
-				layout=ctx.create_layout()
-				layout.set_width(int(opts.pagepadding*2))
-				layout.set_alignment(pango.ALIGN_CENTER)
-				layout.set_font_description(arrowfont)
-				layout.set_text(str(page.mr))
+				layout.set_text(str(page.right))
 				ctx.move_to(opts.pagewidth-opts.pagepadding*2/3, opts.pageheight/2-0.5*layout.get_size()[1]/pango.SCALE)
 				ctx.update_layout(layout)
 				ctx.show_layout(layout)
 				
-			if page.ur:
-				layout=ctx.create_layout()
-				layout.set_width(int(opts.pagepadding*2))
-				layout.set_alignment(pango.ALIGN_CENTER)
-				layout.set_font_description(arrowfont)
-				layout.set_text(str(page.ur))
-				ctx.move_to(opts.pagewidth-opts.pagepadding*2/3, opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
-				ctx.update_layout(layout)
-				ctx.show_layout(layout)		
-
 		else:
-			if page.ul:
+			if page.left:
 				layout=ctx.create_layout()
 				layout.set_width(int(opts.pagepadding*2))
 				layout.set_alignment(pango.ALIGN_CENTER)
 				layout.set_font_description(arrowfont)
-				layout.set_text(str(page.ul))
-				ctx.move_to(opts.pagepadding*2/3, opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
-				ctx.update_layout(layout)
-				ctx.show_layout(layout)		
-
-			if page.ml:
-				layout=ctx.create_layout()
-				layout.set_width(int(opts.pagepadding*2))
-				layout.set_alignment(pango.ALIGN_CENTER)
-				layout.set_font_description(arrowfont)
-				layout.set_text(str(page.ml))
+				layout.set_text(str(page.left))
 				ctx.move_to(opts.pagepadding*2/3, opts.pageheight/2-0.5*layout.get_size()[1]/pango.SCALE)
 				ctx.update_layout(layout)
 				ctx.show_layout(layout)
 
-			if page.dl:
-				layout=ctx.create_layout()
-				layout.set_width(int(opts.pagepadding*2))
-				layout.set_alignment(pango.ALIGN_CENTER)
-				layout.set_font_description(arrowfont)
-				layout.set_text(str(page.dl))
-				ctx.move_to(opts.pagepadding*2/3, opts.pageheight-opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
-				ctx.update_layout(layout)
-				ctx.show_layout(layout)
-
-		if page.uc:
+		if page.up:
 			layout=ctx.create_layout()
 			layout.set_width(int(opts.pagepadding*2))
 			layout.set_alignment(pango.ALIGN_CENTER)
 			layout.set_font_description(arrowfont)
-			layout.set_text(str(page.uc))
+			layout.set_text(str(page.up))
 			ctx.move_to(opts.pagewidth/2, opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
 			ctx.update_layout(layout)
 			ctx.show_layout(layout)		
 		
-		if page.dc:
+		if page.down:
 			layout=ctx.create_layout()
 			layout.set_width(int(opts.pagepadding*2))
 			layout.set_alignment(pango.ALIGN_CENTER)
 			layout.set_font_description(arrowfont)
-			layout.set_text(str(page.dc))
+			layout.set_text(str(page.down))
 			ctx.move_to(opts.pagewidth/2, opts.pageheight-opts.pagepadding*2/3-0.5*layout.get_size()[1]/pango.SCALE)
 			ctx.update_layout(layout)
 			ctx.show_layout(layout)
