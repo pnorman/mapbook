@@ -69,6 +69,7 @@ if __name__ == "__main__":
 	import cairo
 	import pango
 	import pangocairo
+	import tempfile
 	
 	# Initial mapnik setup
 	merc = mapnik.Projection('+init=epsg:3857')
@@ -78,7 +79,6 @@ if __name__ == "__main__":
 	# Calculate some information
 	mapwidth=opts.pagewidth-opts.pagepadding
 	mapheight=opts.pageheight-2*opts.pagepadding
-	
 	
 	# Lay out the grid of pages
 	# pagegrid
@@ -121,7 +121,6 @@ if __name__ == "__main__":
 				
 				
 			pages.append(thispage)
-			
 				
 	# Start rendering pages
 	print 'Rendering a total of {} pages'.format(opts.rows*opts.columns)
