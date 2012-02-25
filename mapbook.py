@@ -145,7 +145,6 @@ if __name__ == "__main__":
 		im.save(imagefile.name)
 		imgs = cairo.ImageSurface.create_from_png(imagefile)
 
-		print 'Temp file is {}'.format(imagefile.name)
 		# Save the current clip region
 		ctx.save()
 		# Save the current scale
