@@ -1,1 +1,36 @@
 A python program to build printable map books
+usage: mapbook.py [-h] --startx STARTX --starty STARTY --width WIDTH
+                  [--overwidth OVERWIDTH] --pagewidth PAGEWIDTH --pageheight
+                  PAGEHEIGHT [--pagepadding PAGEPADDING] [--mapfile MAPFILE]
+                  [--outputfile OUTPUTFILE] [--rows ROWS] [--columns COLUMNS]
+                  [--firstmap FIRSTMAP] [--skip SKIP] [--firstpage FIRSTPAGE]
+                  [--blankfirst] [--dpi DPI]
+
+Create a mapbook
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --startx STARTX       West coordinate to map in mercator km
+  --starty STARTY       South coordinate to map in mercator km
+  --width WIDTH         Width in mercator km of a map page
+  --overwidth OVERWIDTH
+                        Width in mercator km to add to each side
+  --pagewidth PAGEWIDTH
+                        Page width in points. Should be <= physical page width
+  --pageheight PAGEHEIGHT
+                        Page height in points. Should be <= physical page
+                        height
+  --pagepadding PAGEPADDING
+                        Padding around the edges of each map
+  --mapfile MAPFILE     Mapnik XML file
+  --outputfile OUTPUTFILE
+                        Name of PDF file to create
+  --rows ROWS           Number of rows of maps
+  --columns COLUMNS     Number of columns of maps
+  --firstmap FIRSTMAP   Number of first map
+  --skip SKIP           Comma-seperated list of map numbers to skip. May be
+                        specified multiple times
+  --firstpage FIRSTPAGE
+                        Page number of first page
+  --blankfirst          Insert an empty page at the beginning of the PDF
+  --dpi DPI             DPI of mapnik image
