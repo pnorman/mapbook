@@ -117,9 +117,10 @@ if __name__ == "__main__":
 	
 	ctx = pangocairo.CairoContext(cairo.Context(book))
 	
-	if opts.blankfirst:
-		ctx.show_page()
-		pagecount = pagecount + 1
+	if opts.blankfirst == True:
+		print 'printing blank page'
+		#ctx.show_page()
+		#pagecount = pagecount + 1
 
 	for page in pages:
 	

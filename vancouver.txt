@@ -9,11 +9,13 @@ width 7621
 overwidth 176
 
 #Number of rows (x dir)
-rows 1
+rows 2
 
 #Number of columns (y dir)
-columns 1
+columns 3
 
+firstpage 1
+blankfirst
 
 # about 6.5x8.0
 # 1/2 legal, minus a border of 13pt on the top and 16pt on the sides
@@ -21,5 +23,6 @@ columns 1
 pagewidth 472
 pageheight 586
 
-mapfile /home/pnorman/osm/mapnik/mapnik-style/osm.xml
+#mapfile /home/pnorman/osm/mapnik/mapnik-style/osm.xml
+mapfile /home/pnorman/osm/mapnik/MapQuest-Mapnik-Style/mapquest-us2.xml
 outputfile vancouver.pdf
