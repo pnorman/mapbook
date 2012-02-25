@@ -46,16 +46,25 @@ if __name__ == "__main__":
 	parser.add_argument('--outputfile',help='Name of PDF file to create',default='map.pdf')
 	
 	# Grid options
-	parser.add_argument('--rows',type=int,help='Number of rows of map pages', default=1)
-	parser.add_argument('--columns',type=int,help='Number of columns of map pages', default=1)
+	parser.add_argument('--rows',type=int,help='Number of rows of maps', default=1)
+	parser.add_argument('--columns',type=int,help='Number of columns of maps', default=1)
 	parser.add_argument('--firstmap',type=int,help='Number of first map', default=1)
-
+	parser.add_argument('--skip',action='append',help='Comma-seperated list of map numbers to skip. May be specified multiple times')
+	
 	# Page options
 	parser.add_argument('--firstpage',type=int,help='Page number of first page', default=1)
 	parser.add_argument('--blankfirst',action='store_true',help='Insert an empty page at the beginning of the PDF',default=False)
 	parser.add_argument('--dpi',type=float,help='DPI of mapnik image', default=300.)
 	
 	opts=parser.parse_args()
+	
+	print opts
+	
+	# Build a list of pages to skip
+	skippedmaps = []
+	for options in opts.skip:
+		for numbers in options.split(','):
+			skippedmaps.append(int(numbers))
 	
 	import mapnik2 as mapnik
 	import cairo
@@ -83,9 +92,12 @@ if __name__ == "__main__":
 	
 	pagegrid = []
 	for y in range(opts.rows):
-		pagegrid.append(range(opts.firstmap+y*opts.columns,opts.firstmap+(1+y)*opts.columns))
+		thisrow=[]
+		for x in range(opts.columns):
+			thisrow.append(None if opts.firstmap+y*opts.columns+x in skippedmaps else opts.firstmap+y*opts.columns+x)
+		pagegrid.append(thisrow)
 	
-	
+
 	# Define the pages
 	pages = []
 	
@@ -123,7 +135,10 @@ if __name__ == "__main__":
 		#pagecount = pagecount + 1
 
 	for page in pages:
-	
+		
+		if not page.mapnumber:
+			continue
+			
 		print 'Rendering map {} on page {}'.format(page.mapnumber, pagecount)
 		
 		#pages[0].bounds[0] - overwidth - 0.5 * (mwidth-width)

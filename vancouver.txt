@@ -15,7 +15,6 @@ rows 2
 columns 3
 
 firstpage 1
-blankfirst
 
 # about 6.5x8.0
 # 1/2 legal, minus a border of 13pt on the top and 16pt on the sides
@@ -24,5 +23,5 @@ pagewidth 472
 pageheight 586
 
 #mapfile /home/pnorman/osm/mapnik/mapnik-style/osm.xml
-mapfile /home/pnorman/osm/mapnik/MapQuest-Mapnik-Print-Style/mapquest-us.xml
+mapfile /home/pnorman/osm/mapnik/MapQuest-Mapnik-Print-Style/mapquest-us2.xml
 outputfile vancouver.pdf
