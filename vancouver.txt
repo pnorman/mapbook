@@ -1,3 +1,7 @@
+# This file (and not mapbook in general) is released to the public domain,
+# or if that is not possible, licensed under CC0 from Creative Commons
+
+
 # An example mapbook config for part of Vancouver, BC
 
 # Bottom left corner. Approximately 49.2026N 123.1396W

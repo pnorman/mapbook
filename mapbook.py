@@ -19,7 +19,6 @@
 	Copyright 2012 Paul Norman
 '''
 
-
 class Page:
 	def __init__(self, mapnumber, minx, miny, width, ratio):
 	
