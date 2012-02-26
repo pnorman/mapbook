@@ -62,9 +62,10 @@ if __name__ == "__main__":
 	
 	# Build a list of pages to skip
 	skippedmaps = []
-	for options in opts.skip:
-		for numbers in options.split(','):
-			skippedmaps.append(int(numbers))
+	if opts.skip:
+		for options in opts.skip:
+			for numbers in options.split(','):
+				skippedmaps.append(int(numbers))
 	
 	import mapnik2 as mapnik
 	import cairo
@@ -124,16 +125,66 @@ if __name__ == "__main__":
 
 	
 	book = cairo.PDFSurface(opts.outputfile,opts.pagewidth,opts.pageheight)
-
 	pagecount = opts.firstpage
-	
 	ctx = pangocairo.CairoContext(cairo.Context(book))
 	
 	if opts.blankfirst == True:
 		print 'printing blank page'
-		#ctx.show_page()
-		#pagecount = pagecount + 1
+		ctx.show_page()
+		pagecount = pagecount + 1
 
+		
+	# Print the legend page
+	
+	bounds = (\
+	opts.startx - opts.columns*opts.overwidth,\
+	opts.starty - opts.rows*opts.overwidth,\
+	opts.startx + opts.columns*opts.width + opts.columns*opts.overwidth,\
+	opts.starty + opts.columns*opts.width*mapheight/mapwidth + opts.columns*opts.overwidth\
+	)
+	
+	bbox = (\
+	bounds[0] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (bounds[2] - bounds[0]),\
+	bounds[1] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (bounds[3] - bounds[1]),\
+	bounds[2] + 2*opts.overwidth + 0.5 * (opts.pagewidth/mapwidth - 1) * (bounds[2] - bounds[0]),\
+	bounds[1] + 2*opts.overwidth + 0.5 * (opts.pagewidth/mapwidth - 1) * (bounds[3] - bounds[1])\
+	)
+	m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
+	m.zoom_to_box(mapnik.Box2d(*bbox))
+
+	mapnik.load_map(m,opts.mapfile)
+	mapnik.render(m,im,opts.dpi/90.7)
+	imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
+	im.save(imagefile.name)
+	imgs = cairo.ImageSurface.create_from_png(imagefile)
+	# Save the current clip region
+	ctx.save()
+	# Save the current scale
+
+	if pagecount % 2 != 1:
+		ctx.rectangle(opts.pagepadding,opts.pagepadding,mapwidth,mapheight)
+	else:
+		ctx.rectangle(0,opts.pagepadding,mapwidth,mapheight)
+	ctx.clip()
+
+	ctx.scale(72/opts.dpi,72/opts.dpi)
+	ctx.set_source_surface(imgs)
+	ctx.paint()
+	
+
+	# Restore the clip region
+	ctx.restore()
+	
+	ctx.set_line_width(.25)
+	ctx.set_source_rgb(0, 0, 0)
+	if pagecount % 2 != 1:
+		ctx.rectangle(opts.pagepadding,opts.pagepadding,mapwidth,mapheight)
+	else:
+		ctx.rectangle(0,opts.pagepadding,mapwidth,mapheight)
+	ctx.stroke()	
+	ctx.show_page()
+	pagecount = pagecount + 1
+	
 	for page in pages:
 		
 		if not page.mapnumber:
@@ -146,10 +197,10 @@ if __name__ == "__main__":
 		# minx, miny, maxx, maxy
 
 		bbox = (\
-		page.bounds[0] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[2] - pages[0].bounds[0]),\
-		page.bounds[1] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[3] - pages[0].bounds[1]),\
-		page.bounds[2] + 2*opts.overwidth + 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[2] - pages[0].bounds[0]),\
-		page.bounds[1] + 2*opts.overwidth + 0.5 * (opts.pagewidth/mapwidth - 1) * (pages[0].bounds[3] - pages[0].bounds[1])\
+		page.bounds[0] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (page.bounds[2] - pages[0].bounds[0]),\
+		page.bounds[1] - 2*opts.overwidth - 0.5 * (opts.pagewidth/mapwidth - 1) * (page.bounds[3] - page.bounds[1]),\
+		page.bounds[2] + 2*opts.overwidth + 0.5 * (opts.pagewidth/mapwidth - 1) * (page.bounds[2] - page.bounds[0]),\
+		page.bounds[1] + 2*opts.overwidth + 0.5 * (opts.pagewidth/mapwidth - 1) * (page.bounds[3] - page.bounds[1])\
 		)
 
 		m.zoom_to_box(mapnik.Box2d(*bbox))
@@ -172,11 +223,10 @@ if __name__ == "__main__":
 
 		ctx.scale(72/opts.dpi,72/opts.dpi)
 		ctx.set_source_surface(imgs)
-	
 		ctx.paint()
-		#mapnik.render(m,ctx,0,0)
+		
 	
-	# Restore the clip region
+		# Restore the clip region
 		ctx.restore()
 		
 		ctx.set_line_width(.25)
