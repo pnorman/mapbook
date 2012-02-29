@@ -19,6 +19,49 @@
 	Copyright 2012 Paul Norman
 '''
 
+import mapnik2 as mapnik
+
+import cairo
+import pango
+import pangocairo
+import tempfile
+import types
+
+class bbox:
+	'''
+	Sets up a bounding box object. start[x|y] are the start coordinates in the projection proj
+	
+	'''
+	def __init__(self, startx, starty, width, overwidth=0., ratio=1., proj=mapnik.Projection('+init=epsg:3857')):
+		self.startx = startx
+		self.starty = starty
+		self.width = width
+		if type(overwidth) == types.FloatType:
+			self.overwidth = overwidth
+		elif type(overwidth) == types.StringTypes:
+			if overwidth[-1] == '%':
+				try:
+					self.overwidth = float(overwidth[0,-1])
+				except TypeError:
+					raise ValueError('A string parameter for overwidth must be a percentage')
+			else:
+				raise ValueError('A string parameter for overwidth must be a percentage')
+		else:
+			raise TypeError('a float or string is required for overwidth')
+
+	
+	'''
+	Returns the bounds, given an (x,y) to offset by
+	'''
+	def bounds(x,y):
+		if type(x) != types.IntType:
+			raise TypeError('an int is required for x')
+		if type(y) != types.IntType:
+			raise TypeError('an int is required for y')
+		
+		return (self.startx + x*self.width, self. starty + y*self.width*self.ratio,\
+				self.startx + (x+1)*self.width, self. starty + (y+1)*self.width*self.ratio)
+
 class Page:
 	def __init__(self, mapnumber, minx, miny, width, ratio):
 	
@@ -32,7 +75,8 @@ class Page:
 		self.right = None
 		self.down = None
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
+if False:
 	import argparse
 	
 	class LineArgumentParser(argparse.ArgumentParser):
@@ -86,11 +130,6 @@ if __name__ == "__main__":
 			for numbers in options.split(','):
 				skippedmaps.append(int(numbers))
 	
-	import mapnik2 as mapnik
-	import cairo
-	import pango
-	import pangocairo
-	import tempfile
 	
 	# Initial mapnik setup
 	merc = mapnik.Projection('+init=epsg:3857')
