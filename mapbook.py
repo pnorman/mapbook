@@ -27,7 +27,7 @@ import pangocairo
 import tempfile
 import types
 
-class bbox:
+class Bbox:
 	'''
 	Sets up a bounding box object. start[x|y] are the start coordinates in the projection proj
 	
@@ -62,6 +62,48 @@ class bbox:
 		return (self.startx + x*self.width, self. starty + y*self.width*self.ratio,\
 				self.startx + (x+1)*self.width, self. starty + (y+1)*self.width*self.ratio)
 
+class Pagelist:
+	def __init__(self, rows, columns, start=1, skip=[]):
+		if type(rows) != types.IntType:
+			raise TypeError('an int is required for rows')
+		self.rows=rows
+		if type(columns) != types.IntType:
+			raise TypeError('an int is required for columns')
+		self.columns=columns
+		if type(start) != types.IntType:
+			raise TypeError('an int is required for start')
+		self.start=start
+		if type(skip) != types.ListType:
+			raise TypeError('a list is required for skip')
+		for page in skip:
+			if type(page) != types.IntType:
+				raise TypeError('all members of skip must be ints')
+		self.skip=skip
+	def __iter__(self):
+		return Pagelist.pages(self)
+	def pages(self):
+		number = self.start
+		for y in range(1,self.rows+1):
+			for x in range(1,self.columns+1):
+				if number not in self.skip:
+					yield Page(x,y,number)
+				number += 1
+				
+
+class Page:
+	def __init__(self, x, y, number):
+		if type(x) != types.IntType:
+			raise TypeError('an int is required for x')
+		self.x = x
+		if type(y) != types.IntType:
+			raise TypeError('an int is required for y')
+		self.y = y
+		if type(number) != types.IntType:
+			raise TypeError('an int is required for y')
+		self.number = number
+
+		
+'''	
 class Page:
 	def __init__(self, mapnumber, minx, miny, width, ratio):
 	
@@ -74,7 +116,7 @@ class Page:
 		self.left = None
 		self.right = None
 		self.down = None
-
+'''
 #if __name__ == "__main__":
 if False:
 	import argparse
