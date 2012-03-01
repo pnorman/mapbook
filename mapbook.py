@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 
 '''
 	This file is part of mapbook.
@@ -14,7 +14,7 @@
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+	along with Mapbook.  If not, see <http://www.gnu.org/licenses/>.
 
 	Copyright 2012 Paul Norman
 '''
@@ -27,6 +27,30 @@ import pangocairo
 import tempfile
 import types
 
+POINTS_PER_INCH = 72.0
+
+class Book:
+	def __init__(self, surface, area, dpi=300.):
+		'''
+		Creates the book object. self must be a cairo.Surface
+		'''
+		self.__surface=surface
+		self.__dpi=dpi
+		self._m=mapnik.Map(	int(sheet.pagewidth*self.__dpi/POINTS_PER_INCH),
+							int(sheet.pageheight*self.__dpi/POINTS_PER_INCH))
+		# Fixme: specify srs?					
+	
+	def createPreface():
+		pass
+		
+class Area:
+	def __init__(self, pagelist, bbox, sheet):
+		self.pagelist=pagelist
+		self.bbox=bbox
+		self.sheet=sheet
+		
+		
+		
 class Bbox:
 	'''
 	Sets up a bounding box object. start[x|y] are the start coordinates in the projection proj
@@ -59,7 +83,7 @@ class Bbox:
 		if type(y) != types.IntType:
 			raise TypeError('an int is required for y')
 		
-		return (self.startx + x*self.width, self. starty + y*self.width*self.ratio,
+		return (self.startx + x*self.width, self.starty + y*self.width*self.ratio,
 				self.startx + (x+1)*self.width, self. starty + (y+1)*self.width*self.ratio)
 
 class Sheet:
@@ -70,13 +94,16 @@ class Sheet:
 		self.pagewidth = pagewidth
 		self.pageheight = pageheight
 		self.padding = padding
-	
+
+	@property
 	def mapheight():
 		return self.pageheight - 2 * self.padding
-		
+	
+	@property
 	def mapwidth():
 		return self.pagewidth - 2 * self.padding
 		
+	@property
 	def ratio():
 		return float(self.mapheight())/self.mapwidth()
 
@@ -194,7 +221,7 @@ if False:
 	# Initial mapnik setup
 	merc = mapnik.Projection('+init=epsg:3857')
 	m = mapnik.Map(int(opts.pagewidth*opts.dpi/72.0),int(opts.pageheight*opts.dpi/72.0))
-	# Fixme: specify srs?
+	
 	m.srs = merc.params()
 	
 	im = mapnik.Image(int(opts.pagewidth*opts.dpi/72.0),int(opts.pageheight*opts.dpi/72.0))
