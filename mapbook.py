@@ -59,8 +59,26 @@ class Bbox:
 		if type(y) != types.IntType:
 			raise TypeError('an int is required for y')
 		
-		return (self.startx + x*self.width, self. starty + y*self.width*self.ratio,\
+		return (self.startx + x*self.width, self. starty + y*self.width*self.ratio,
 				self.startx + (x+1)*self.width, self. starty + (y+1)*self.width*self.ratio)
+
+class Sheet:
+	'''
+	The physical sheet
+	'''
+	def __init__(self, pagewidth, pageheight, padding):
+		self.pagewidth = pagewidth
+		self.pageheight = pageheight
+		self.padding = padding
+	
+	def mapheight():
+		return self.pageheight - 2 * self.padding
+		
+	def mapwidth():
+		return self.pagewidth - 2 * self.padding
+		
+	def ratio():
+		return float(self.mapheight())/self.mapwidth()
 
 class Pagelist:
 	def __init__(self, rows, columns, start=1, skip=[]):
