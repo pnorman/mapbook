@@ -28,38 +28,64 @@ import tempfile
 import types
 
 POINTS_PER_INCH = 72.0
-
+BASE_PPI = 90.7
 class Book:
-	def __init__(self, surface, area, dpi=300.):
-		'''
-		Creates the book object. self must be a cairo.Surface
-		'''
-		self.__surface=surface
-		self.__dpi=dpi
-		self._m=mapnik.Map(	int(sheet.pagewidth*self.__dpi/POINTS_PER_INCH),
-							int(sheet.pageheight*self.__dpi/POINTS_PER_INCH))
+	def __init__(self, fobj, area, mapfile):
+
+		self.area = area
+		self.mapfile = mapfile
+		self._surface=cairo.PDFSurface(fobj,*(self.area.pagesize))
+		# Set up mapnik
+		self._m=mapnik.Map(*self.area.map_size)
+		self._m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
+		self._im = mapnik.Image(*(self.area.pagesize))
+		
 		# Fixme: specify srs?					
 	
-	def createPreface():
+	def create_preface(self):
 		pass
 		
+	def create_index(self):
+		pass
+	
+	def create_maps(self):
+		for page in self.area.pagelist:
+			self._m.zoom_to_box(mapnik.Box2d(*bbox))
+			self._m.render(self._im,self.area.scale)
+			imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
+
+		
+		
+		
 class Area:
-	def __init__(self, pagelist, bbox, sheet):
+	def __init__(self, pagelist, bbox, sheet, dpi=300.):
 		self.pagelist=pagelist
 		self.bbox=bbox
 		self.sheet=sheet
-		
-		
+		self.dpi=dpi
+	@property
+	def map_size(self):
+		return (int(self.sheet.pagewidth*self.dpi/POINTS_PER_INCH),
+							int(self.sheet.pageheight*self.dpi/POINTS_PER_INCH))
+	
+	@property	
+	def pagesize(self):
+		return (int(self.sheet.pagewidth), int(self.sheet.pageheight))
+	
+	@property
+	def scale(self):
+		return self.dpi/BASE_PPI
 		
 class Bbox:
 	'''
 	Sets up a bounding box object. start[x|y] are the start coordinates in the projection proj
 	
 	'''
-	def __init__(self, startx, starty, width, overwidth=0., ratio=1., proj=mapnik.Projection('+init=epsg:3857')):
+	def __init__(self, startx, starty, width, ratio, overwidth=0., proj=mapnik.Projection('+init=epsg:3857')):
 		self.startx = startx
 		self.starty = starty
 		self.width = width
+		self.ratio=ratio
 		if type(overwidth) == types.FloatType:
 			self.overwidth = overwidth
 		elif type(overwidth) == types.StringTypes:
@@ -77,7 +103,7 @@ class Bbox:
 	'''
 	Returns the bounds, given an (x,y) to offset by
 	'''
-	def bounds(x,y):
+	def bounds(self,x,y):
 		if type(x) != types.IntType:
 			raise TypeError('an int is required for x')
 		if type(y) != types.IntType:
@@ -96,16 +122,16 @@ class Sheet:
 		self.padding = padding
 
 	@property
-	def mapheight():
+	def mapheight(self):
 		return self.pageheight - 2 * self.padding
 	
 	@property
-	def mapwidth():
+	def mapwidth(self):
 		return self.pagewidth - 2 * self.padding
 		
 	@property
-	def ratio():
-		return float(self.mapheight())/self.mapwidth()
+	def ratio(self):
+		return float(self.mapheight)/self.mapwidth
 
 class Pagelist:
 	def __init__(self, rows, columns, start=1, skip=[]):
@@ -162,8 +188,7 @@ class Page:
 		self.right = None
 		self.down = None
 '''
-#if __name__ == "__main__":
-if False:
+if __name__ == "__main__":
 	import argparse
 	
 	class LineArgumentParser(argparse.ArgumentParser):
@@ -216,8 +241,16 @@ if False:
 		for options in opts.skip:
 			for numbers in options.split(','):
 				skippedmaps.append(int(numbers))
+		
+	sheet = Sheet(opts.pagewidth, opts.pageheight, opts.pagepadding)
+	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio) 
+	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps), bbox, sheet, dpi=300.)
+	mybook = Book(opts.outputfile,myarea,opts.mapfile)
 	
+
+
 	
+if False:	
 	# Initial mapnik setup
 	merc = mapnik.Projection('+init=epsg:3857')
 	m = mapnik.Map(int(opts.pagewidth*opts.dpi/72.0),int(opts.pageheight*opts.dpi/72.0))
