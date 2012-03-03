@@ -54,11 +54,20 @@ class Book:
 	def create_maps(self):
 		for page in self.area.pagelist:
 			print "Rendering page {}, {}".format(page.number, page.right)
-			self.__render_page(page)
+			self._render_page(page)
 			# Create the map
 			
 			
-	def __render_page(self, page):
+	def _render_page(self, page):
+		self._render_map(page)
+		self._ctx.set_line_width(.4)
+		self._ctx.set_source_rgb(0, 0, 0)
+		self.area.sheet.draw_inset(self._ctx,page)
+		self._ctx.stroke()
+		
+		self._ctx.show_page()
+	
+	def _render_map(self, page):
 		self._m.zoom_to_box(self.area.full_bounds(page))
 		mapnik.render(self._m,self._im,self.area.scale)
 		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
@@ -74,14 +83,7 @@ class Book:
 		self._ctx.set_source_surface(imgsurface)
 		self._ctx.paint()
 		self._ctx.restore()
-		
-		self._ctx.set_line_width(.4)
-		self._ctx.set_source_rgb(0, 0, 0)
-		self.area.sheet.draw_inset(self._ctx,page)
-		self._ctx.stroke()
-		
-		self._ctx.show_page()
-		
+	
 class Area:
 	def __init__(self, pagelist, bbox, sheet, dpi=300.):
 		self.pagelist=pagelist
