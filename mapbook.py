@@ -99,6 +99,15 @@ class Book:
 				
 		self._ctx.fill()
 		
+		self._ctx.set_source_rgb(1., 1., 1.)
+		self._ctx.select_font_face('Sans')
+		self._ctx.set_font_size(opts.pagepadding*.38)
+		
+		if self.area.pagelist.number(page.x, page.y+1):
+			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, 0.6667*self.area.sheet.padding)
+			self._ctx.show_text(str(self.area.pagelist.number(page.x, page.y+1)))
+			
+		self._ctx.stroke()
 		self._ctx.show_page()
 	
 	def _render_map(self, page):
