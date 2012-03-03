@@ -66,18 +66,39 @@ class Book:
 		self.area.sheet.draw_inset(self._ctx,page)
 		self._ctx.stroke()
 		
-		# Top arrow
-		self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, 0)
-		self._ctx.rel_line_to(self.area.sheet.padding,self.area.sheet.padding)
-		self._ctx.rel_line_to(-2*self.area.sheet.padding,0)
-		self._ctx.close_path()
+		self._ctx.set_source_rgb(0., 0., 0.)
+		
+		if self.area.pagelist.number(page.x, page.y+1):
+			# Top arrow
+			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, 0)
+			self._ctx.rel_line_to(self.area.sheet.padding,self.area.sheet.padding)
+			self._ctx.rel_line_to(-2*self.area.sheet.padding,0)
+			self._ctx.close_path()
 
-		# Bottom arrow
-		self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, self.area.sheet.pageheight)
-		self._ctx.rel_line_to(self.area.sheet.padding,-self.area.sheet.padding)
-		self._ctx.rel_line_to(-2*self.area.sheet.padding,0)
-		self._ctx.close_path()
-
+		if self.area.pagelist.number(page.x, page.y-1):
+			# Bottom arrow
+			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, self.area.sheet.pageheight)
+			self._ctx.rel_line_to(self.area.sheet.padding,-self.area.sheet.padding)
+			self._ctx.rel_line_to(-2*self.area.sheet.padding,0)
+			self._ctx.close_path()
+		
+		if page.right:
+			if self.area.pagelist.number(page.x+1, page.y):
+				# Right arrow
+				self._ctx.move_to(self.area.sheet.pagewidth,float(self.area.sheet.pageheight)/2)
+				self._ctx.rel_line_to(-self.area.sheet.padding,self.area.sheet.padding)
+				self._ctx.rel_line_to(0,-2*self.area.sheet.padding)
+				self._ctx.close_path()
+		else:
+			if self.area.pagelist.number(page.x-1, page.y):
+				# Left arrow
+				self._ctx.move_to(0,float(self.area.sheet.pageheight)/2)
+				self._ctx.rel_line_to(self.area.sheet.padding,self.area.sheet.padding)
+				self._ctx.rel_line_to(0,-2*self.area.sheet.padding)
+				self._ctx.close_path()
+				
+		self._ctx.fill()
+		
 		self._ctx.show_page()
 	
 	def _render_map(self, page):
@@ -223,6 +244,19 @@ class Pagelist:
 		
 	def __iter__(self):
 		return Pagelist.pages(self)
+	
+	def number(self, x, y):
+		'''
+		Returns the number of a map given the x and y
+		'''
+		number = None
+		if x>=0 and x<self.columns:
+			if y>=0 and y<self.rows:
+				number = y*self.rows + x + self.start
+		if number not in self.skip:
+			return number
+		else:
+			return None
 		
 	def pages(self):
 		number = self.start
@@ -303,7 +337,7 @@ if __name__ == "__main__":
 		
 	sheet = Sheet(opts.pagewidth, opts.pageheight, opts.pagepadding)
 	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio) 
-	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps), bbox, sheet, dpi=300.)
+	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=True), bbox, sheet, dpi=300.)
 	mybook = Book(opts.outputfile,myarea,opts.mapfile)
 	mybook.create_maps()
 	mybook._surface.finish()
