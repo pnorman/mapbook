@@ -74,6 +74,12 @@ class Book:
 		self._ctx.set_source_surface(imgsurface)
 		self._ctx.paint()
 		self._ctx.restore()
+		
+		self._ctx.set_line_width(.4)
+		self._ctx.set_source_rgb(0, 0, 0)
+		self.area.sheet.draw_inset(self._ctx,page)
+		self._ctx.stroke()
+		
 		self._ctx.show_page()
 		
 class Area:
