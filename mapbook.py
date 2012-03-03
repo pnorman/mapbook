@@ -54,7 +54,7 @@ class Book:
 	def create_maps(self):
 		for page in self.area.pagelist:
 			print "Rendering page {}, {}".format(page.number, page.right)
-			__render_page(page)
+			self.__render_page(page)
 			# Create the map
 			
 			
