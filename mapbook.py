@@ -60,10 +60,16 @@ class Book:
 			
 	def _render_page(self, page):
 		self._render_map(page)
+		
 		self._ctx.set_line_width(.4)
 		self._ctx.set_source_rgb(0, 0, 0)
 		self.area.sheet.draw_inset(self._ctx,page)
 		self._ctx.stroke()
+		
+		self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, self.area.sheet.pageheight)
+		self._ctx.rel_line_to(self.area.sheet.padding,-self.area.sheet.padding)
+		self._ctx.rel_line_to(-2*self.area.sheet.padding,0)
+		self._ctx.close_path()
 		
 		self._ctx.show_page()
 	
@@ -179,12 +185,12 @@ class Sheet:
 	
 	def page_inset(self,page):
 		'''
-		Returns the coordinates in points of the area to place the map on
+		Returns the rectangle to place the map on 
 		'''
 		if page.right:
-			return (0, self.padding, self.mapwidth, self.mapheight)
+			return (0., float(self.padding), float(self.mapwidth), float(self.mapheight))
 		else:
-			return (self.padding, self.padding, self.mapwidth, self.mapheight)
+			return (float(self.padding), float(self.padding), float(self.mapwidth), float(self.mapheight))
 	
 	def draw_inset(self, ctx, page):
 		ctx.rectangle(*(self.page_inset(page)))
