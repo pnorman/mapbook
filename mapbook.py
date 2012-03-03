@@ -79,7 +79,7 @@ class Book:
 		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
 		self._im.save(imagefile.name)
 		
-		# Set up the cairo context
+		# Set up the cairo ImageSurface
 		imgsurface = cairo.ImageSurface.create_from_png(imagefile)
 
 		self._ctx.save()
