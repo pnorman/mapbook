@@ -290,6 +290,14 @@ class Page:
 		self.number = number
 		self.right=right
 		
+def print_centered_text(ctx, text):
+	'''
+	Uses the toy text API to print text at the current location
+	ctx.stroke() must be called for the text to appear
+	'''
+	ctx.rel_move_to(-float(ctx.text_extents(text)[2])/2, -float(ctx.text_extents(text)[3])/2)
+	ctx.show_text(text)
+
 if __name__ == "__main__":
 	import argparse
 	
