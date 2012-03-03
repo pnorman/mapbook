@@ -42,9 +42,8 @@ class Book:
 		self._m=mapnik.Map(*(self.area.map_size))
 		self._m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
 		self._im=mapnik.Image(*(self.area.pagesize_pixels))
-		mapnik.load_map(self._m,mapfile)
-		
-		# Fixme: specify srs?			
+		mapnik.load_map(self._m,mapfile) # Fixme: specify srs?		
+				
 	
 	def create_preface(self):
 		pass
@@ -66,7 +65,6 @@ class Book:
 		self._im.save(imagefile.name)
 		
 		# Set up the cairo context
-		
 		imgsurface = cairo.ImageSurface.create_from_png(imagefile)
 
 		self._ctx.save()
@@ -77,10 +75,6 @@ class Book:
 		self._ctx.paint()
 		self._ctx.restore()
 		self._ctx.show_page()
-		
-
-		
-		
 		
 class Area:
 	def __init__(self, pagelist, bbox, sheet, dpi=300.):
@@ -109,12 +103,7 @@ class Area:
 		'''
 		Returns the size of the bbox necessary to cover the full page and allow for padding
 		'''
-
-		'''self.bbox.bounds'''
-
-		
 		y_avg = (self.bbox.bounds(page)[3]+self.bbox.bounds(page)[1])/2
-
 		if page.right:
 			return mapnik.Box2d(
 									self.bbox.bounds(page)[0],
@@ -127,8 +116,6 @@ class Area:
 									(self.bbox.bounds(page)[1]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg,
 									self.bbox.bounds(page)[2],
 									(self.bbox.bounds(page)[3]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg)
-				##fixme: correct bbox for left pages
-
 
 class Bbox:
 	def __init__(self, startx, starty, width, ratio, overwidth=0., proj=mapnik.Projection('+init=epsg:3857')):
@@ -137,7 +124,6 @@ class Bbox:
 		
 		Projections other than epsg:3857 may not work yet
 		'''
-
 		self.startx = startx
 		self.starty = starty
 		self.width = width
@@ -155,11 +141,10 @@ class Bbox:
 		else:
 			raise TypeError('a float or string is required for overwidth')
 
-	
-	'''
-	Returns the bounds, given an (x,y) to offset by
-	'''
 	def bounds(self,page):
+		'''
+		Returns the bounds, given an (x,y) to offset by
+		'''
 		return (self.startx + page.x*self.width - self.overwidth, self.starty + (page.y*self.width - self.overwidth)*self.ratio,
 				self.startx + (page.x+1)*self.width + self.overwidth, self. starty + ((page.y+1)*self.width + self.overwidth)*self.ratio)
 
@@ -214,8 +199,10 @@ class Pagelist:
 				raise TypeError('all members of skip must be ints')
 		self.skip=skip
 		self.right=bool(right)
+		
 	def __iter__(self):
 		return Pagelist.pages(self)
+		
 	def pages(self):
 		number = self.start
 		pagecount = 2 - int(self.right)
@@ -225,7 +212,6 @@ class Pagelist:
 					yield Page(x,y,number,bool(pagecount % 2))
 				number += 1
 				pagecount += 1
-				
 
 class Page:
 	def __init__(self, x, y, number,right):
@@ -239,7 +225,6 @@ class Page:
 			raise TypeError('an int is required for y')
 		self.number = number
 		self.right=right
-
 		
 if __name__ == "__main__":
 	import argparse
@@ -303,10 +288,7 @@ if __name__ == "__main__":
 	mybook._surface.finish()
 
 	
-	
 
-
-	
 if False:	
 	# Initial mapnik setup
 	merc = mapnik.Projection('+init=epsg:3857')
