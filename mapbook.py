@@ -29,6 +29,7 @@ import types
 
 POINTS_PER_INCH = 72.0
 BASE_PPI = 90.7
+
 class Book:
 	def __init__(self, fobj, area, mapfile):
 
@@ -105,7 +106,7 @@ class Book:
 		
 		if self.area.pagelist.number(page.x, page.y+1):
 			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, 0.6667*self.area.sheet.padding)
-			self._ctx.show_text(str(self.area.pagelist.number(page.x, page.y+1)))
+			print_centered_text(self._ctx, str(self.area.pagelist.number(page.x, page.y+1)))
 			
 		self._ctx.stroke()
 		self._ctx.show_page()
@@ -295,7 +296,7 @@ def print_centered_text(ctx, text):
 	Uses the toy text API to print text at the current location
 	ctx.stroke() must be called for the text to appear
 	'''
-	ctx.rel_move_to(-float(ctx.text_extents(text)[2])/2, -float(ctx.text_extents(text)[3])/2)
+	#ctx.rel_move_to(-float(ctx.text_extents(text)[2])/2, -float(ctx.text_extents(text)[3])/2)
 	ctx.show_text(text)
 
 if __name__ == "__main__":
