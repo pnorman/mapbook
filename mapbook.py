@@ -32,13 +32,15 @@ BASE_PPI = 90.7
 class Book:
 	def __init__(self, fobj, area, mapfile):
 
+		# Setup cairo
 		self.area = area
 		self.mapfile = mapfile
-		self._surface=cairo.PDFSurface(fobj,*(self.area.pagesize))
-		# Set up mapnik
+		self._surface=cairo.PDFSurface(fobj,*(self.area.pagesize_points))
+		
+		# Setup mapnik
 		self._m=mapnik.Map(*self.area.map_size)
 		self._m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
-		self._im = mapnik.Image(*(self.area.pagesize))
+		self._im=mapnik.Image(*(self.area.pagesize_pixels))
 		
 		# Fixme: specify srs?					
 	
@@ -50,9 +52,31 @@ class Book:
 	
 	def create_maps(self):
 		for page in self.area.pagelist:
-			self._m.zoom_to_box(mapnik.Box2d(*bbox))
-			self._m.render(self._im,self.area.scale)
-			imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
+			print "Rendering page {}".format(page.number)
+			
+			# Create the map
+			mapnik.load_map(self._m,self.mapfile)
+			self._m.zoom_to_box(self.area.full_bounds(page))
+			mapnik.render(self._m,self._im,1/self.area.scale)
+			imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=False)
+			self._im.save(imagefile.name)
+			
+			
+			ctx = cairo.Context(self._surface)
+
+			imgsurface = cairo.ImageSurface.create_from_png(imagefile)
+	
+			ctx.save()
+			self.area.sheet.draw_inset(ctx,page)
+			ctx.clip()
+
+			ctx.scale(72/opts.dpi,72/opts.dpi)
+			ctx.set_source_surface(imgsurface)
+			ctx.paint()
+			ctx.restore()
+			ctx.show_page()
+			
+		
 
 		
 		
@@ -65,17 +89,44 @@ class Area:
 		self.dpi=dpi
 	@property
 	def map_size(self):
-		return (int(self.sheet.pagewidth*self.dpi/POINTS_PER_INCH),
-							int(self.sheet.pageheight*self.dpi/POINTS_PER_INCH))
+		return (int((self.sheet.pagewidth - self.sheet.padding)*self.dpi/POINTS_PER_INCH),
+							int((self.sheet.pageheight - 2*self.sheet.padding)*self.dpi/POINTS_PER_INCH))
 	
 	@property	
-	def pagesize(self):
+	def pagesize_points(self):
 		return (int(self.sheet.pagewidth), int(self.sheet.pageheight))
+		
+	@property	
+	def pagesize_pixels(self):
+		return (int(self.sheet.pagewidth*self.dpi/POINTS_PER_INCH), int(self.sheet.pageheight*self.dpi/POINTS_PER_INCH))
 	
 	@property
 	def scale(self):
 		return self.dpi/BASE_PPI
+	
+	def full_bounds(self,page):
+		'''
+		Returns the size of the bbox necessary to cover the full page and allow for padding
+		'''
+
+		'''self.bbox.bounds'''
 		
+		y_avg = (self.bbox.bounds(page)[3]-self.bbox.bounds(page)[1])/2
+		if page.right:
+			return mapnik.Box2d(
+									self.bbox.bounds(page)[0],
+									(self.bbox.bounds(page)[1]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg,
+									(self.bbox.bounds(page)[2]-self.bbox.bounds(page)[0])*self.pagesize_pixels[0]/self.map_size[0]+self.bbox.bounds(page)[0],
+									(self.bbox.bounds(page)[3]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg)
+		else:
+			return mapnik.Box2d(
+									self.bbox.bounds(page)[0],
+									(self.bbox.bounds(page)[1]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg,
+									(self.bbox.bounds(page)[2]-self.bbox.bounds(page)[0])*self.pagesize_pixels[0]/self.map_size[0]+self.bbox.bounds(page)[0],
+									(self.bbox.bounds(page)[3]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg)
+				##fixme: correct bbox for left pages
+
+
 class Bbox:
 	'''
 	Sets up a bounding box object. start[x|y] are the start coordinates in the projection proj
@@ -103,14 +154,9 @@ class Bbox:
 	'''
 	Returns the bounds, given an (x,y) to offset by
 	'''
-	def bounds(self,x,y):
-		if type(x) != types.IntType:
-			raise TypeError('an int is required for x')
-		if type(y) != types.IntType:
-			raise TypeError('an int is required for y')
-		
-		return (self.startx + x*self.width, self.starty + y*self.width*self.ratio,
-				self.startx + (x+1)*self.width, self. starty + (y+1)*self.width*self.ratio)
+	def bounds(self,page):
+		return (self.startx + page.x*self.width - self.overwidth, self.starty + (page.y*self.width - self.overwidth)*self.ratio,
+				self.startx + (page.x+1)*self.width + self.overwidth, self. starty + ((page.y+1)*self.width + self.overwidth)*self.ratio)
 
 class Sheet:
 	'''
@@ -132,9 +178,21 @@ class Sheet:
 	@property
 	def ratio(self):
 		return float(self.mapheight)/self.mapwidth
-
+	
+	def page_inset(self,page):
+		'''
+		Returns the coordinates in points of the area to place the map on
+		'''
+		if page.right:
+			return (0, self.padding, self.mapwidth, self.mapheight)
+		else:
+			return (self.padding, self.padding, self.mapwidth, self.mapheight)
+	
+	def draw_inset(self, ctx, page):
+		ctx.rectangle(*(self.page_inset(page)))
+		
 class Pagelist:
-	def __init__(self, rows, columns, start=1, skip=[]):
+	def __init__(self, rows, columns, start=1, skip=[],right=True):
 		if type(rows) != types.IntType:
 			raise TypeError('an int is required for rows')
 		self.rows=rows
@@ -150,19 +208,21 @@ class Pagelist:
 			if type(page) != types.IntType:
 				raise TypeError('all members of skip must be ints')
 		self.skip=skip
+		self.right=bool(right)
 	def __iter__(self):
 		return Pagelist.pages(self)
 	def pages(self):
 		number = self.start
-		for y in range(1,self.rows+1):
-			for x in range(1,self.columns+1):
+		pagecount = 2 - int(self.right)
+		for y in range(0,self.rows):
+			for x in range(0,self.columns):
 				if number not in self.skip:
-					yield Page(x,y,number)
+					yield Page(x,y,number,bool(pagecount % 2))
 				number += 1
 				
 
 class Page:
-	def __init__(self, x, y, number):
+	def __init__(self, x, y, number,right):
 		if type(x) != types.IntType:
 			raise TypeError('an int is required for x')
 		self.x = x
@@ -172,6 +232,7 @@ class Page:
 		if type(number) != types.IntType:
 			raise TypeError('an int is required for y')
 		self.number = number
+		self.right=right
 
 		
 '''	
@@ -246,6 +307,10 @@ if __name__ == "__main__":
 	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio) 
 	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps), bbox, sheet, dpi=300.)
 	mybook = Book(opts.outputfile,myarea,opts.mapfile)
+	mybook.create_maps()
+	mybook._surface.finish()
+
+	
 	
 
 
@@ -359,7 +424,7 @@ if False:
 		ctx.rectangle(opts.pagepadding,opts.pagepadding,mapwidth,mapheight)
 	else:
 		ctx.rectangle(0,opts.pagepadding,mapwidth,mapheight)
-	ctx.stroke()	
+	ctx.stroke()
 	ctx.show_page()
 	pagecount = pagecount + 1
 	

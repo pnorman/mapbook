@@ -13,10 +13,10 @@ width 7621
 overwidth 176
 
 #Number of rows (x dir)
-rows 4
+rows 2
 
 #Number of columns (y dir)
-columns 10
+columns 2
 
 firstpage 1
 
