@@ -54,27 +54,28 @@ class Book:
 	def create_maps(self):
 		for page in self.area.pagelist:
 			print "Rendering page {}, {}".format(page.number, page.right)
-			
+			__render_page(page)
 			# Create the map
-			self._m.zoom_to_box(self.area.full_bounds(page))
-			mapnik.render(self._m,self._im,self.area.scale)
-			imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=False)
-			self._im.save(imagefile.name)
-			
-			# Set up the cairo context
-			
-			imgsurface = cairo.ImageSurface.create_from_png(imagefile)
-	
-			self._ctx.save()
-			self.area.sheet.draw_inset(self._ctx,page)
-			self._ctx.clip()
-			self._ctx.scale(POINTS_PER_INCH/self.area.dpi,POINTS_PER_INCH/self.area.dpi)
-			self._ctx.set_source_surface(imgsurface)
-			self._ctx.paint()
-			self._ctx.restore()
-			self._ctx.show_page()
 			
 			
+	def __render_page(self, page):
+		self._m.zoom_to_box(self.area.full_bounds(page))
+		mapnik.render(self._m,self._im,self.area.scale)
+		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=False)
+		self._im.save(imagefile.name)
+		
+		# Set up the cairo context
+		
+		imgsurface = cairo.ImageSurface.create_from_png(imagefile)
+
+		self._ctx.save()
+		self.area.sheet.draw_inset(self._ctx,page)
+		self._ctx.clip()
+		self._ctx.scale(POINTS_PER_INCH/self.area.dpi,POINTS_PER_INCH/self.area.dpi)
+		self._ctx.set_source_surface(imgsurface)
+		self._ctx.paint()
+		self._ctx.restore()
+		self._ctx.show_page()
 		
 
 		
