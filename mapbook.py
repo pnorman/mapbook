@@ -66,11 +66,18 @@ class Book:
 		self.area.sheet.draw_inset(self._ctx,page)
 		self._ctx.stroke()
 		
+		# Top arrow
+		self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, 0)
+		self._ctx.rel_line_to(self.area.sheet.padding,self.area.sheet.padding)
+		self._ctx.rel_line_to(-2*self.area.sheet.padding,0)
+		self._ctx.close_path()
+
+		# Bottom arrow
 		self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, self.area.sheet.pageheight)
 		self._ctx.rel_line_to(self.area.sheet.padding,-self.area.sheet.padding)
 		self._ctx.rel_line_to(-2*self.area.sheet.padding,0)
 		self._ctx.close_path()
-		
+
 		self._ctx.show_page()
 	
 	def _render_map(self, page):
