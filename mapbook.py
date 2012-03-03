@@ -37,13 +37,14 @@ class Book:
 		self.mapfile = mapfile
 		self._surface=cairo.PDFSurface(fobj,*(self.area.pagesize_points))
 		self._ctx = cairo.Context(self._surface)
+		
 		# Setup mapnik
 		self._m=mapnik.Map(*(self.area.map_size))
 		self._m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
 		self._im=mapnik.Image(*(self.area.pagesize_pixels))
 		mapnik.load_map(self._m,mapfile)
 		
-		# Fixme: specify srs?					
+		# Fixme: specify srs?			
 	
 	def create_preface(self):
 		pass
@@ -61,7 +62,7 @@ class Book:
 	def __render_page(self, page):
 		self._m.zoom_to_box(self.area.full_bounds(page))
 		mapnik.render(self._m,self._im,self.area.scale)
-		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=False)
+		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
 		self._im.save(imagefile.name)
 		
 		# Set up the cairo context
@@ -130,11 +131,13 @@ class Area:
 
 
 class Bbox:
-	'''
-	Sets up a bounding box object. start[x|y] are the start coordinates in the projection proj
-	
-	'''
 	def __init__(self, startx, starty, width, ratio, overwidth=0., proj=mapnik.Projection('+init=epsg:3857')):
+		'''
+		Sets up a bounding box object. start[x|y] are the start coordinates in the projection proj
+		
+		Projections other than epsg:3857 may not work yet
+		'''
+
 		self.startx = startx
 		self.starty = starty
 		self.width = width
