@@ -68,7 +68,38 @@ class Book:
 		self._ctx.stroke()
 		
 		self._ctx.set_source_rgb(0., 0., 0.)
+		self._draw_arrows(page)
+		self._ctx.fill()
 		
+		self._ctx.set_source_rgb(1., 1., 1.)
+		self._ctx.select_font_face('Sans')
+		self._ctx.set_font_size(opts.pagepadding*.38)
+		self._render_arrow_text(page)
+		self._ctx.stroke()
+		
+		self._ctx.show_page()
+
+	def _render_map(self, page):
+		self._m.zoom_to_box(self.area.full_bounds(page))
+		mapnik.render(self._m,self._im,self.area.scale)
+		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
+		self._im.save(imagefile.name)
+		
+		# Set up the cairo ImageSurface
+		imgsurface = cairo.ImageSurface.create_from_png(imagefile)
+
+		self._ctx.save()
+		self.area.sheet.draw_inset(self._ctx,page)
+		self._ctx.clip()
+		self._ctx.scale(POINTS_PER_INCH/self.area.dpi,POINTS_PER_INCH/self.area.dpi)
+		self._ctx.set_source_surface(imgsurface)
+		self._ctx.paint()
+		self._ctx.restore()
+		
+	def _draw_arrows(self, page):
+		'''
+		Creates the sub-paths for the page arrows
+		'''
 		if self.area.pagelist.number(page.x, page.y+1):
 			# Top arrow
 			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, 0)
@@ -90,6 +121,7 @@ class Book:
 				self._ctx.rel_line_to(-self.area.sheet.padding,self.area.sheet.padding)
 				self._ctx.rel_line_to(0,-2*self.area.sheet.padding)
 				self._ctx.close_path()
+				
 		else:
 			if self.area.pagelist.number(page.x-1, page.y):
 				# Left arrow
@@ -97,37 +129,30 @@ class Book:
 				self._ctx.rel_line_to(self.area.sheet.padding,self.area.sheet.padding)
 				self._ctx.rel_line_to(0,-2*self.area.sheet.padding)
 				self._ctx.close_path()
-				
-		self._ctx.fill()
-		
-		self._ctx.set_source_rgb(1., 1., 1.)
-		self._ctx.select_font_face('Sans')
-		self._ctx.set_font_size(opts.pagepadding*.38)
-		
+
+	def _render_arrow_text(self, page):
 		if self.area.pagelist.number(page.x, page.y+1):
+			# Top text
 			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, 0.6667*self.area.sheet.padding)
 			print_centered_text(self._ctx, str(self.area.pagelist.number(page.x, page.y+1)))
 			
-		self._ctx.stroke()
-		self._ctx.show_page()
-	
-	def _render_map(self, page):
-		self._m.zoom_to_box(self.area.full_bounds(page))
-		mapnik.render(self._m,self._im,self.area.scale)
-		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
-		self._im.save(imagefile.name)
+		if self.area.pagelist.number(page.x, page.y-1):
+			# Bottom text
+			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2]/2, self.area.sheet.pageheight - 0.6667*self.area.sheet.padding)
+			print_centered_text(self._ctx, str(self.area.pagelist.number(page.x, page.y-1)))
 		
-		# Set up the cairo ImageSurface
-		imgsurface = cairo.ImageSurface.create_from_png(imagefile)
+		if page.right:
+			if self.area.pagelist.number(page.x+1, page.y):
+				# Right text
+				self._ctx.move_to(self.area.sheet.pagewidth-0.6667*self.area.sheet.padding,float(self.area.sheet.pageheight)/2)
+				print_centered_text(self._ctx, str(self.area.pagelist.number(page.x+1, page.y)))
 
-		self._ctx.save()
-		self.area.sheet.draw_inset(self._ctx,page)
-		self._ctx.clip()
-		self._ctx.scale(POINTS_PER_INCH/self.area.dpi,POINTS_PER_INCH/self.area.dpi)
-		self._ctx.set_source_surface(imgsurface)
-		self._ctx.paint()
-		self._ctx.restore()
-	
+		else:
+			if self.area.pagelist.number(page.x-1, page.y):
+				# Left text
+				self._ctx.move_to(0.6667*self.area.sheet.padding,float(self.area.sheet.pageheight)/2)
+				print_centered_text(self._ctx, str(self.area.pagelist.number(page.x-1, page.y)))
+				
 class Area:
 	def __init__(self, pagelist, bbox, sheet, dpi=300.):
 		self.pagelist=pagelist
@@ -232,7 +257,7 @@ class Sheet:
 	
 	def draw_inset(self, ctx, page):
 		ctx.rectangle(*(self.page_inset(page)))
-		
+	
 class Pagelist:
 	def __init__(self, rows, columns, start=1, skip=[],right=True):
 		if type(rows) != types.IntType:
@@ -296,7 +321,7 @@ def print_centered_text(ctx, text):
 	Uses the toy text API to print text at the current location
 	ctx.stroke() must be called for the text to appear
 	'''
-	#ctx.rel_move_to(-float(ctx.text_extents(text)[2])/2, -float(ctx.text_extents(text)[3])/2)
+	ctx.rel_move_to(-float(ctx.text_extents(text)[2])/2, float(ctx.text_extents(text)[3])/2)
 	ctx.show_text(text)
 
 if __name__ == "__main__":
