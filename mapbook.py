@@ -68,13 +68,23 @@ class Book:
 		self._ctx.stroke()
 		
 		self._ctx.set_source_rgb(0., 0., 0.)
-		self._render_arrows(page)
+		self._render_arrow_path(page)
 		self._ctx.fill()
 		
 		self._ctx.set_source_rgb(1., 1., 1.)
 		self._ctx.select_font_face('Sans')
 		self._ctx.set_font_size(opts.pagepadding*.38)
 		self._render_arrow_text(page)
+		self._ctx.stroke()
+		
+		self._ctx.set_source_rgb(0., 0., 0.)
+		self._render_number_path(page)
+		self._ctx.fill()
+		
+		self._ctx.set_source_rgb(1., 1., 1.)
+		self._ctx.select_font_face('Sans')
+		self._ctx.set_font_size(opts.pagepadding*.38)
+		self._render_number_text(page)
 		self._ctx.stroke()
 		
 		self._ctx.show_page()
@@ -96,7 +106,7 @@ class Book:
 		self._ctx.paint()
 		self._ctx.restore()
 		
-	def _render_arrows(self, page):
+	def _render_arrow_path(self, page):
 		'''
 		Creates the sub-paths for the page arrows
 		'''
@@ -153,8 +163,18 @@ class Book:
 				self._ctx.move_to(0.6667*self.area.sheet.padding,float(self.area.sheet.pageheight)/2)
 				print_centered_text(self._ctx, str(self.area.pagelist.number(page.x-1, page.y)))
 	
-	def _draw_number_area(self, page):
-		pass
+	def _render_number_path(self, page):
+		if page.right:
+			self._ctx.rectangle(self.area.sheet.pagewidth, self.area.sheet.pageheight, -4*self.area.sheet.padding, -self.area.sheet.padding)
+		else:
+			self._ctx.rectangle(0, self.area.sheet.pageheight, 4*self.area.sheet.padding, -self.area.sheet.padding)
+	
+	def _render_number_text(self, page):
+		if page.right:
+			self._ctx.move_to(self.area.sheet.pagewidth-2*self.area.sheet.padding, self.area.sheet.pageheight-0.5*self.area.sheet.padding)
+		else:
+			self._ctx.move_to(2*self.area.sheet.padding, self.area.sheet.pageheight-0.5*self.area.sheet.padding)
+		print_centered_text(self._ctx, str(page.number))
 	
 class Area:
 	def __init__(self, pagelist, bbox, sheet, dpi=300.):
@@ -162,6 +182,7 @@ class Area:
 		self.bbox=bbox
 		self.sheet=sheet
 		self.dpi=dpi
+		
 	@property
 	def map_size(self):
 		return (int((self.sheet.pagewidth - self.sheet.padding)*self.dpi/POINTS_PER_INCH),
