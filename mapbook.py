@@ -54,10 +54,10 @@ class Book:
 	
 	def create_maps(self):
 		for page in self.area.pagelist:
-			print "Rendering page {}, {}".format(page.number, page.right)
+			print "Rendering page {}".format(page.number)
 			self._render_page(page)
 			# Create the map
-			
+
 			
 	def _render_page(self, page):
 		self._render_map(page)
@@ -68,7 +68,7 @@ class Book:
 		self._ctx.stroke()
 		
 		self._ctx.set_source_rgb(0., 0., 0.)
-		self._draw_arrows(page)
+		self._render_arrows(page)
 		self._ctx.fill()
 		
 		self._ctx.set_source_rgb(1., 1., 1.)
@@ -96,7 +96,7 @@ class Book:
 		self._ctx.paint()
 		self._ctx.restore()
 		
-	def _draw_arrows(self, page):
+	def _render_arrows(self, page):
 		'''
 		Creates the sub-paths for the page arrows
 		'''
@@ -152,7 +152,10 @@ class Book:
 				# Left text
 				self._ctx.move_to(0.6667*self.area.sheet.padding,float(self.area.sheet.pageheight)/2)
 				print_centered_text(self._ctx, str(self.area.pagelist.number(page.x-1, page.y)))
-				
+	
+	def _draw_number_area(self, page):
+		pass
+	
 class Area:
 	def __init__(self, pagelist, bbox, sheet, dpi=300.):
 		self.pagelist=pagelist
