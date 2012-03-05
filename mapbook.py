@@ -73,7 +73,7 @@ class Book:
 		
 		self._ctx.set_source_rgb(1., 1., 1.)
 		self._ctx.select_font_face('Sans')
-		self._ctx.set_font_size(opts.pagepadding*.38)
+		self._ctx.set_font_size(opts.pagepadding*.4)
 		self._render_arrow_text(page)
 		self._ctx.stroke()
 		
@@ -83,7 +83,7 @@ class Book:
 		
 		self._ctx.set_source_rgb(1., 1., 1.)
 		self._ctx.select_font_face('Sans')
-		self._ctx.set_font_size(opts.pagepadding*.38)
+		self._ctx.set_font_size(opts.pagepadding*.8)
 		self._render_number_text(page)
 		self._ctx.stroke()
 		
