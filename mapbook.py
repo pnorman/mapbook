@@ -38,7 +38,7 @@ class Book:
 		self.mapfile = mapfile
 		self._surface=cairo.PDFSurface(fobj,*(self.area.pagesize_points))
 		self._ctx = cairo.Context(self._surface)
-		
+		self.font = font
 		# Setup mapnik
 		self._m=mapnik.Map(*(self.area.map_size))
 		self._m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
@@ -72,7 +72,7 @@ class Book:
 		self._ctx.fill()
 		
 		self._ctx.set_source_rgb(1., 1., 1.)
-		self._ctx.select_font_face(font)
+		self._ctx.select_font_face(self.font)
 		self._ctx.set_font_size(opts.pagepadding*.4)
 		self._render_arrow_text(page)
 		self._ctx.stroke()
@@ -82,7 +82,7 @@ class Book:
 		self._ctx.fill()
 		
 		self._ctx.set_source_rgb(1., 1., 1.)
-		self._ctx.select_font_face(font)
+		self._ctx.select_font_face(self.font)
 		self._ctx.set_font_size(opts.pagepadding*.8)
 		self._render_number_text(page)
 		self._ctx.stroke()
@@ -405,7 +405,7 @@ if __name__ == "__main__":
 	sheet = Sheet(opts.pagewidth, opts.pageheight, opts.pagepadding)
 	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio) 
 	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=True), bbox, sheet, dpi=300.)
-	mybook = Book(opts.outputfile,myarea,opts.mapfile)
+	mybook = Book(opts.outputfile,myarea,opts.mapfile,font='PT Sans')
 	mybook.create_maps()
 	mybook._surface.finish()
 
