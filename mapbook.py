@@ -31,7 +31,7 @@ POINTS_PER_INCH = 72.0
 BASE_PPI = 90.7
 
 class Book:
-	def __init__(self, fobj, area, mapfile):
+	def __init__(self, fobj, area, mapfile, font = 'Sans'):
 
 		# Setup cairo
 		self.area = area
@@ -72,7 +72,7 @@ class Book:
 		self._ctx.fill()
 		
 		self._ctx.set_source_rgb(1., 1., 1.)
-		self._ctx.select_font_face('Sans')
+		self._ctx.select_font_face(font)
 		self._ctx.set_font_size(opts.pagepadding*.4)
 		self._render_arrow_text(page)
 		self._ctx.stroke()
@@ -82,7 +82,7 @@ class Book:
 		self._ctx.fill()
 		
 		self._ctx.set_source_rgb(1., 1., 1.)
-		self._ctx.select_font_face('Sans')
+		self._ctx.select_font_face(font)
 		self._ctx.set_font_size(opts.pagepadding*.8)
 		self._render_number_text(page)
 		self._ctx.stroke()
