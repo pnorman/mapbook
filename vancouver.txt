@@ -16,7 +16,7 @@ overwidth 176
 rows 2
 
 #Number of columns (y dir)
-columns 2
+columns 4
 
 firstpage 1
 

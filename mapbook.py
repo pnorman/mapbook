@@ -48,8 +48,10 @@ class Book:
 				
 	
 	def create_preface(self):
-		self._m.zoom_to_box(self.area.left_extent())
-		self._m.zoom_to_box(self.area.right_extent())
+		self._render_map(Page(None, None, None, False), self.area.left_extent())
+		self._ctx.show_page()
+		self._render_map(Page(None, None, None, True), self.area.right_extent())
+		self._ctx.show_page()
 		
 	def create_index(self):
 		pass
@@ -60,7 +62,7 @@ class Book:
 			self._render_page(page)
 			
 	def _render_page(self, page):
-		self._render_map(page)
+		self._render_map(page, self.area.full_bounds(page))
 		
 		self._ctx.set_line_width(.4)
 		self._ctx.set_source_rgb(0, 0, 0)
@@ -89,8 +91,9 @@ class Book:
 		
 		self._ctx.show_page()
 
-	def _render_map(self, page):
-		self._m.zoom_to_box(self.area.full_bounds(page))
+	def _render_map(self, page, bbox):
+		print bbox
+		self._m.zoom_to_box(bbox)
 		mapnik.render(self._m,self._im,self.area.scale)
 		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
 		self._im.save(imagefile.name)
@@ -232,10 +235,11 @@ class Area:
 		max_x = max(page.x for page in self.pagelist)
 		max_y = max(page.y for page in self.pagelist)
 		
+		print '(min_x,min_y,max_x,max_y)=({},{},{},{})'.format(min_x,min_y,max_x,max_y)
 		return (self.bbox.startx+min(page.x for page in self.pagelist)*self.bbox.width,
 				self.bbox.starty+min(page.y for page in self.pagelist)*self.bbox.width*self.bbox.ratio,
-				self.bbox.startx+max(page.x for page in self.pagelist)*self.bbox.width,
-				self.bbox.starty+max(page.y for page in self.pagelist)*self.bbox.width*self.bbox.ratio)
+				self.bbox.startx+(max(page.x for page in self.pagelist)+1)*self.bbox.width,
+				self.bbox.starty+(max(page.y for page in self.pagelist)+1)*self.bbox.width*self.bbox.ratio)
 				
 	def full_extent(self):
 		'''
@@ -249,7 +253,8 @@ class Area:
 		height = extent[3]-extent[1]
 		
 		# The true ratio of the overview page is height/(2*width) since it is two pages wide
-		scale = max(2*(width/height)/self.bbox.ratio,self.bbox.ratio/(2*width/height))
+		scale = max((width/height)/self.bbox.ratio,self.bbox.ratio/(width/height))
+		print 'scale=max({},{})'.format((width/height)/self.bbox.ratio,self.bbox.ratio/(width/height))
 		
 		return ((extent[0]-x_avg)*scale+x_avg,
 				(extent[1]-y_avg)*scale+y_avg,
@@ -258,19 +263,20 @@ class Area:
 	
 	def left_extent(self):
 		full_extent = self.full_extent()
-		extent_overwidth = self.bbox.overwidth/self.bbox.width*(full_extent[2]-full_extent[0])/2
+		#extent_overwidth = self.bbox.overwidth/self.bbox.width*(full_extent[2]-full_extent[0])/2
+		extent_overwidth=0.
 		return mapnik.Box2d(full_extent[0]-extent_overwidth,
 				full_extent[1]-extent_overwidth*self.bbox.ratio,
 				(full_extent[0]+full_extent[2])/2+extent_overwidth,
-				(full_extent[1]+full_extent[3])/2+extent_overwidth*self.bbox.ratio)
+				full_extent[3]+extent_overwidth*self.bbox.ratio)
 				
 	def right_extent(self):
 		full_extent = self.full_extent()
 		extent_overwidth = self.bbox.overwidth/self.bbox.width*(full_extent[2]-full_extent[0])/2
 		return mapnik.Box2d((full_extent[0]+full_extent[2])/2-extent_overwidth,
-				(full_extent[1]+full_extent[3])/2-extent_overwidth*self.bbox.ratio,
+				full_extent[1]-extent_overwidth*self.bbox.ratio,
 				full_extent[2]+extent_overwidth,
-				full_extent[3]+extent_overwidth*self.bbox.ratio)	
+				full_extent[3]+extent_overwidth*self.bbox.ratio)
 	
 class Bbox:
 	def __init__(self, startx, starty, width, ratio, overwidth=0., proj=mapnik.Projection('+init=epsg:3857')):
@@ -337,7 +343,7 @@ class Sheet:
 		ctx.rectangle(*(self.page_inset(page)))
 	
 class Pagelist:
-	def __init__(self, rows, columns, start=1, skip=[],right=True):
+	def __init__(self, rows, columns, start=1, skip=[],right=False):
 		if type(rows) != types.IntType:
 			raise TypeError('an int is required for rows')
 		self.rows=rows
@@ -383,16 +389,10 @@ class Pagelist:
 
 class Page:
 	def __init__(self, x, y, number,right):
-		if type(x) != types.IntType:
-			raise TypeError('an int is required for x')
 		self.x = x
-		if type(y) != types.IntType:
-			raise TypeError('an int is required for y')
 		self.y = y
-		if type(number) != types.IntType:
-			raise TypeError('an int is required for y')
 		self.number = number
-		self.right=right
+		self.right=bool(right)
 		
 def print_centered_text(ctx, text):
 	'''
@@ -458,7 +458,7 @@ if __name__ == "__main__":
 		
 	sheet = Sheet(opts.pagewidth, opts.pageheight, opts.pagepadding)
 	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio) 
-	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=True), bbox, sheet, dpi=300.)
+	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=False), bbox, sheet, dpi=300.)
 	mybook = Book(opts.outputfile,myarea,opts.mapfile,font='PT Sans')
 	mybook.create_preface()
 	mybook.create_maps()
