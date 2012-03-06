@@ -56,8 +56,6 @@ class Book:
 		for page in self.area.pagelist:
 			print "Rendering page {}".format(page.number)
 			self._render_page(page)
-			# Create the map
-
 			
 	def _render_page(self, page):
 		self._render_map(page)
