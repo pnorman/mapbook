@@ -1,6 +1,4 @@
-﻿#!/usr/bin/env python
-
-'''
+﻿'''
 	This file is part of mapbook.
 
 	mapbook is free software: you can redistribute it and/or modify
@@ -75,7 +73,7 @@ class Book:
 		
 		self._ctx.set_source_rgb(1., 1., 1.)
 		self._ctx.select_font_face(self.font)
-		self._ctx.set_font_size(opts.pagepadding*.4)
+		self._ctx.set_font_size(self.area.sheet.padding*.4)
 		self._render_arrow_text(page)
 		self._ctx.stroke()
 		
@@ -83,9 +81,9 @@ class Book:
 		self._render_number_path(page)
 		self._ctx.fill()
 		
-		self._ctx.set_source_rgb(1., 1., 1.)
+		self._ctx.set_source_rgb(1., 1., 1.) 
 		self._ctx.select_font_face(self.font)
-		self._ctx.set_font_size(opts.pagepadding*.8)
+		self._ctx.set_font_size(self.area.sheet.padding*.8)
 		self._render_number_text(page)
 		self._ctx.stroke()
 		
@@ -252,15 +250,12 @@ class Area:
 		width = extent[2]-extent[0]
 		height = extent[3]-extent[1]
 		
-		# The true ratio of the overview page is height/(2*width) since it is two pages wide
-		scale = max((width/height)/self.bbox.ratio,self.bbox.ratio/(width/height))
-		print 'scale=max({},{})'.format((width/height)/self.bbox.ratio,self.bbox.ratio/(width/height))
-		
-		return ((extent[0]-x_avg)*scale+x_avg,
-				(extent[1]-y_avg)*scale+y_avg,
-				(extent[2]-x_avg)*scale+x_avg,
-				(extent[3]-y_avg)*scale+y_avg)
-	
+		ratio = 0.5*self.bbox.ratio
+		if height/width < ratio:
+			return (x_avg-0.5*width, y_avg-0.5*width*ratio, x_avg+0.5*width, y_avg-0.5*width*ratio)
+		else:
+			return (x_avg-0.5*height/ratio, y_avg-0.5*height, x_avg+0.5*height/ratio, y_avg+0.5*height)
+
 	def left_extent(self):
 		full_extent = self.full_extent()
 		#extent_overwidth = self.bbox.overwidth/self.bbox.width*(full_extent[2]-full_extent[0])/2
@@ -401,66 +396,3 @@ def print_centered_text(ctx, text):
 	'''
 	ctx.rel_move_to(-float(ctx.text_extents(text)[2])/2, float(ctx.text_extents(text)[3])/2)
 	ctx.show_text(text)
-
-if __name__ == "__main__":
-	import argparse
-	
-	class LineArgumentParser(argparse.ArgumentParser):
-		def convert_arg_line_to_args(self, arg_line):
-			
-			if arg_line:
-				if arg_line.strip()[0] == '#':
-					return
-					
-				for arg in ('--' + arg_line).split():
-					if not arg.strip():
-						continrue
-					yield arg
- 
-	parser = LineArgumentParser(description='Create a mapbook',fromfile_prefix_chars='@')
-	
-	# Location-based options
-	parser.add_argument('--startx', type=float, help='West coordinate to map in mercator km',required=True)
-	parser.add_argument('--starty', type=float, help='South coordinate to map in mercator km',required=True)
-	parser.add_argument('--width', type=float, help='Width in mercator km of a map page',required=True)
-	parser.add_argument('--overwidth', type=float, help='Width in mercator km to add to each side', default=0.)
-	
-	# Page layout options
-	parser.add_argument('--pagewidth', type=float, help='Page width in points. Should be <= physical page width',required=True)
-	parser.add_argument('--pageheight', type=float, help='Page height in points. Should be <= physical page height',required=True)
-	parser.add_argument('--pagepadding', type=float, help='Padding around the edges of each map',default=15.)
-
-	# File options
-	parser.add_argument('--mapfile',help='Mapnik XML file',default='osm.xml')
-	parser.add_argument('--outputfile',help='Name of PDF file to create',default='map.pdf')
-	
-	# Grid options
-	parser.add_argument('--rows',type=int,help='Number of rows of maps', default=1)
-	parser.add_argument('--columns',type=int,help='Number of columns of maps', default=1)
-	parser.add_argument('--firstmap',type=int,help='Number of first map', default=1)
-	parser.add_argument('--skip',action='append',help='Comma-seperated list of map numbers to skip. May be specified multiple times')
-	
-	# Page options
-	parser.add_argument('--firstpage',type=int,help='Page number of first page', default=1)
-	parser.add_argument('--blankfirst',action='store_true',help='Insert an empty page at the beginning of the PDF',default=False)
-	parser.add_argument('--dpi',type=float,help='DPI of mapnik image', default=300.)
-	
-	opts=parser.parse_args()
-	
-	print opts
-	
-	# Build a list of pages to skip
-	skippedmaps = []
-	if opts.skip:
-		for options in opts.skip:
-			for numbers in options.split(','):
-				skippedmaps.append(int(numbers))
-		
-	sheet = Sheet(opts.pagewidth, opts.pageheight, opts.pagepadding)
-	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio) 
-	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=False), bbox, sheet, dpi=300.)
-	mybook = Book(opts.outputfile,myarea,opts.mapfile,font='PT Sans')
-	mybook.create_preface()
-	mybook.create_maps()
-	mybook._surface.finish()
-	
