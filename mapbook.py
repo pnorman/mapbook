@@ -48,8 +48,8 @@ class Book:
 				
 	
 	def create_preface(self):
-		self._m.zoom_to_box
-		pass
+		self._m.zoom_to_box(self.area.left_extent())
+		self._m.zoom_to_box(self.area.right_extent())
 		
 	def create_index(self):
 		pass
@@ -222,20 +222,56 @@ class Area:
 									self.bbox.bounds(page)[2],
 									(self.bbox.bounds(page)[3]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg)
 	
+	@property
 	def extent(self):
 		'''
-		Returns the bbox of the overview page, without a padding allowance
+		Returns the bbox that encloses all pages printed, with no overwidth allowance
 		'''
 		min_x = min(page.x for page in self.pagelist)
 		min_y = min(page.y for page in self.pagelist)
-		min_x = max(page.x for page in self.pagelist)
-		min_y = max(page.y for page in self.pagelist)
+		max_x = max(page.x for page in self.pagelist)
+		max_y = max(page.y for page in self.pagelist)
 		
-		return (self.bbox.bounds(Page(min_x,min_y,0,False))[0]-(max_x-min_x+1)*bbox.overwidth,
-				self.bbox.bounds(Page(min_x,min_y,0,False))[1]-(max_y-min_y+1)*bbox.overwidth*bbox.ratio,
-				self.bbox.bounds(Page(min_x,min_y,0,False))[2]+(max_x-min_x+1)*bbox.overwidth,
-				self.bbox.bounds(Page(min_x,min_y,0,False))[3]+(max_y-min_x+1)*bbox.overwidth*bbox.ratio)
-
+		return (self.bbox.startx+min(page.x for page in self.pagelist)*self.bbox.width,
+				self.bbox.starty+min(page.y for page in self.pagelist)*self.bbox.width*self.bbox.ratio,
+				self.bbox.startx+max(page.x for page in self.pagelist)*self.bbox.width,
+				self.bbox.starty+max(page.y for page in self.pagelist)*self.bbox.width*self.bbox.ratio)
+				
+	def full_extent(self):
+		'''
+		Returns the bbox to display for the index maps, with no padding allowance
+		'''
+		extent = self.extent
+		
+		x_avg = (extent[0]+extent[2])/2
+		y_avg = (extent[1]+extent[3])/2
+		width = extent[2]-extent[0]
+		height = extent[3]-extent[1]
+		
+		# The true ratio of the overview page is height/(2*width) since it is two pages wide
+		scale = max(2*(width/height)/self.bbox.ratio,self.bbox.ratio/(2*width/height))
+		
+		return ((extent[0]-x_avg)*scale+x_avg,
+				(extent[1]-y_avg)*scale+y_avg,
+				(extent[2]-x_avg)*scale+x_avg,
+				(extent[3]-y_avg)*scale+y_avg)
+	
+	def left_extent(self):
+		full_extent = self.full_extent()
+		extent_overwidth = self.bbox.overwidth/self.bbox.width*(full_extent[2]-full_extent[0])/2
+		return mapnik.Box2d(full_extent[0]-extent_overwidth,
+				full_extent[1]-extent_overwidth*self.bbox.ratio,
+				(full_extent[0]+full_extent[2])/2+extent_overwidth,
+				(full_extent[1]+full_extent[3])/2+extent_overwidth*self.bbox.ratio)
+				
+	def right_extent(self):
+		full_extent = self.full_extent()
+		extent_overwidth = self.bbox.overwidth/self.bbox.width*(full_extent[2]-full_extent[0])/2
+		return mapnik.Box2d((full_extent[0]+full_extent[2])/2-extent_overwidth,
+				(full_extent[1]+full_extent[3])/2-extent_overwidth*self.bbox.ratio,
+				full_extent[2]+extent_overwidth,
+				full_extent[3]+extent_overwidth*self.bbox.ratio)	
+	
 class Bbox:
 	def __init__(self, startx, starty, width, ratio, overwidth=0., proj=mapnik.Projection('+init=epsg:3857')):
 		'''
@@ -243,10 +279,10 @@ class Bbox:
 		
 		Projections other than epsg:3857 may not work yet
 		'''
-		self.startx = startx
-		self.starty = starty
-		self.width = width
-		self.ratio=ratio
+		self.startx = float(startx)
+		self.starty = float(starty)
+		self.width = float(width)
+		self.ratio = float(ratio)
 		if type(overwidth) == types.FloatType:
 			self.overwidth = overwidth
 		elif type(overwidth) == types.StringTypes:
@@ -424,6 +460,7 @@ if __name__ == "__main__":
 	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio) 
 	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=True), bbox, sheet, dpi=300.)
 	mybook = Book(opts.outputfile,myarea,opts.mapfile,font='PT Sans')
+	mybook.create_preface()
 	mybook.create_maps()
 	mybook._surface.finish()
 
