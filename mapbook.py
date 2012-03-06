@@ -252,7 +252,7 @@ class Area:
 		
 		ratio = 0.5*self.bbox.ratio
 		if height/width < ratio:
-			return (x_avg-0.5*width, y_avg-0.5*width*ratio, x_avg+0.5*width, y_avg-0.5*width*ratio)
+			return (x_avg-0.5*width, y_avg-0.5*width*ratio, x_avg+0.5*width, y_avg+0.5*width*ratio)
 		else:
 			return (x_avg-0.5*height/ratio, y_avg-0.5*height, x_avg+0.5*height/ratio, y_avg+0.5*height)
 
@@ -366,7 +366,7 @@ class Pagelist:
 		number = None
 		if x>=0 and x<self.columns:
 			if y>=0 and y<self.rows:
-				number = y*self.rows + x + self.start
+				number = y*self.columns + x + self.start
 		if number not in self.skip:
 			return number
 		else:
