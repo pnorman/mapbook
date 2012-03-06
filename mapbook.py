@@ -177,6 +177,10 @@ class Book:
 		print_centered_text(self._ctx, str(page.number))
 	
 class Area:
+	'''
+	It is an error if bbox.ratio and sheet.ratio do not match
+	'''
+	
 	def __init__(self, pagelist, bbox, sheet, dpi=300.):
 		self.pagelist=pagelist
 		self.bbox=bbox
@@ -217,6 +221,20 @@ class Area:
 									(self.bbox.bounds(page)[1]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg,
 									self.bbox.bounds(page)[2],
 									(self.bbox.bounds(page)[3]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg)
+	
+	def extent(self):
+		'''
+		Returns the bbox of the overview page, without a padding allowance
+		'''
+		min_x = min(page.x for page in self.pagelist)
+		min_y = min(page.y for page in self.pagelist)
+		min_x = max(page.x for page in self.pagelist)
+		min_y = max(page.y for page in self.pagelist)
+		
+		return (self.bbox.bounds(Page(min_x,min_y,0,False))[0]-(max_x-min_x+1)*bbox.overwidth,
+				self.bbox.bounds(Page(min_x,min_y,0,False))[1]-(max_y-min_y+1)*bbox.overwidth*bbox.ratio,
+				self.bbox.bounds(Page(min_x,min_y,0,False))[2]+(max_x-min_x+1)*bbox.overwidth,
+				self.bbox.bounds(Page(min_x,min_y,0,False))[3]+(max_y-min_x+1)*bbox.overwidth*bbox.ratio)
 
 class Bbox:
 	def __init__(self, startx, starty, width, ratio, overwidth=0., proj=mapnik.Projection('+init=epsg:3857')):
