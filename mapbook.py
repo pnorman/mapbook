@@ -39,6 +39,7 @@ class Book:
 		self._surface=cairo.PDFSurface(fobj,*(self.area.pagesize_points))
 		self._ctx = cairo.Context(self._surface)
 		self.font = font
+		
 		# Setup mapnik
 		self._m=mapnik.Map(*(self.area.map_size))
 		self._m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
@@ -47,6 +48,7 @@ class Book:
 				
 	
 	def create_preface(self):
+		self._m.zoom_to_box
 		pass
 		
 	def create_index(self):
