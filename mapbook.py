@@ -42,15 +42,21 @@ class Book:
 		self._m=mapnik.Map(*(self.area.map_size))
 		self._m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
 		self._im=mapnik.Image(*(self.area.pagesize_pixels))
-		mapnik.load_map(self._m,mapfile) # Fixme: specify srs?		
+		mapnik.load_map(self._m,mapfile) # Fixme: specify srs?	
 				
 	
 	def create_preface(self):
+		
 		self._render_map(Page(None, None, None, False), self.area.left_extent())
-
 		self._ctx.set_line_width(.4)
 		self._ctx.set_source_rgb(0, 0, 0)
 		self.area.sheet.draw_inset(self._ctx,Page(None, None, None, False))
+		self._ctx.stroke()
+
+		self._ctx.set_line_width(1)
+		self._ctx.set_source_rgb(0.5, 0.5, 0.5)		
+		for page in self.area.pagelist:
+			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.bounds(page),self.area.left_extent())
 		self._ctx.stroke()
 		
 		self._ctx.show_page()
@@ -60,6 +66,12 @@ class Book:
 		self._ctx.set_line_width(.4)
 		self._ctx.set_source_rgb(0, 0, 0)
 		self.area.sheet.draw_inset(self._ctx,Page(None, None, None, True))
+		self._ctx.stroke()
+
+		self._ctx.set_line_width(1)
+		self._ctx.set_source_rgb(0.5, 0.5, 0.5)		
+		for page in self.area.pagelist:
+			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.bounds(page),self.area.right_extent())
 		self._ctx.stroke()
 		
 		self._ctx.show_page()		
@@ -264,20 +276,31 @@ class Area:
 
 	def left_extent(self):
 		full_extent = self.full_extent()
-		#extent_overwidth = self.bbox.overwidth/self.bbox.width*(full_extent[2]-full_extent[0])/2
-		extent_overwidth=0.
-		return mapnik.Box2d(full_extent[0]-extent_overwidth,
-				full_extent[1]-extent_overwidth*self.bbox.ratio,
-				(full_extent[0]+full_extent[2])/2+extent_overwidth,
-				full_extent[3]+extent_overwidth*self.bbox.ratio)
-				
+		extent_overwidth = self.bbox.overwidth/self.bbox.width*(full_extent[2]-full_extent[0])/2
+		
+		map_region = 	(full_extent[0]-extent_overwidth,
+						full_extent[1]-extent_overwidth*self.bbox.ratio,
+						(full_extent[0]+full_extent[2])/2+extent_overwidth,
+						full_extent[3]+extent_overwidth*self.bbox.ratio)
+		y_avg = (map_region[3]+map_region[1])/2
+		return mapnik.Box2d(
+								(map_region[0]-map_region[2])*float(self.pagesize_pixels[0])/self.map_size[0]+map_region[2],
+								(map_region[1]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg,
+								map_region[2],
+								(map_region[3]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg)
 	def right_extent(self):
 		full_extent = self.full_extent()
 		extent_overwidth = self.bbox.overwidth/self.bbox.width*(full_extent[2]-full_extent[0])/2
-		return mapnik.Box2d((full_extent[0]+full_extent[2])/2-extent_overwidth,
-				full_extent[1]-extent_overwidth*self.bbox.ratio,
-				full_extent[2]+extent_overwidth,
-				full_extent[3]+extent_overwidth*self.bbox.ratio)
+		map_region =	((full_extent[0]+full_extent[2])/2-extent_overwidth,
+						full_extent[1]-extent_overwidth*self.bbox.ratio,
+						full_extent[2]+extent_overwidth,
+						full_extent[3]+extent_overwidth*self.bbox.ratio)
+		y_avg = (map_region[3]+map_region[1])/2		
+		return mapnik.Box2d(
+									map_region[0],
+									(map_region[1]-y_avg)*float(self.pagesize_pixels[1])/self.map_size[1]+y_avg,
+									(map_region[2]-map_region[0])*float(self.pagesize_pixels[0])/self.map_size[0]+map_region[0],
+									(map_region[3]-y_avg)*self.pagesize_pixels[1]/self.map_size[1]+y_avg)	
 	
 class Bbox:
 	def __init__(self, startx, starty, width, ratio, overwidth=0., proj=mapnik.Projection('+init=epsg:3857')):
@@ -309,7 +332,7 @@ class Bbox:
 		'''
 		return (self.startx + page.x*self.width - self.overwidth, self.starty + (page.y*self.width - self.overwidth)*self.ratio,
 				self.startx + (page.x+1)*self.width + self.overwidth, self. starty + ((page.y+1)*self.width + self.overwidth)*self.ratio)
-
+				
 class Sheet:
 	'''
 	The physical sheet
@@ -342,6 +365,22 @@ class Sheet:
 	
 	def draw_inset(self, ctx, page):
 		ctx.rectangle(*(self.page_inset(page)))
+	
+	def draw_bbox(self, ctx, bbox, extents):
+		'''
+		Draws the rectangle bbox on a page with a map covering extents
+		'''
+		bounds_on_page =	(self._x_location_from_bounds(bbox[0], extents), 
+							self._y_location_from_bounds(bbox[1], extents), 
+							self._x_location_from_bounds(bbox[2], extents), 
+							self._y_location_from_bounds(bbox[3], extents))
+		ctx.rectangle(bounds_on_page[0], bounds_on_page[1], bounds_on_page[2]-bounds_on_page[0], bounds_on_page[3]-bounds_on_page[1])
+		
+	def _x_location_from_bounds(self, x, bounds):
+		return float(x-bounds[0])/(bounds[2]-bounds[0])*self.pagewidth
+		
+	def _y_location_from_bounds(self, y, bounds):
+		return float(y-bounds[3])/(bounds[1]-bounds[3])*self.pageheight
 	
 class Pagelist:
 	def __init__(self, rows, columns, start=1, skip=[],right=False):
