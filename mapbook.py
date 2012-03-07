@@ -47,9 +47,22 @@ class Book:
 	
 	def create_preface(self):
 		self._render_map(Page(None, None, None, False), self.area.left_extent())
+
+		self._ctx.set_line_width(.4)
+		self._ctx.set_source_rgb(0, 0, 0)
+		self.area.sheet.draw_inset(self._ctx,Page(None, None, None, False))
+		self._ctx.stroke()
+		
 		self._ctx.show_page()
+		
 		self._render_map(Page(None, None, None, True), self.area.right_extent())
-		self._ctx.show_page()
+		
+		self._ctx.set_line_width(.4)
+		self._ctx.set_source_rgb(0, 0, 0)
+		self.area.sheet.draw_inset(self._ctx,Page(None, None, None, True))
+		self._ctx.stroke()
+		
+		self._ctx.show_page()		
 		
 	def create_index(self):
 		pass
@@ -90,7 +103,6 @@ class Book:
 		self._ctx.show_page()
 
 	def _render_map(self, page, bbox):
-		print bbox
 		self._m.zoom_to_box(bbox)
 		mapnik.render(self._m,self._im,self.area.scale)
 		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
@@ -228,12 +240,6 @@ class Area:
 		'''
 		Returns the bbox that encloses all pages printed, with no overwidth allowance
 		'''
-		min_x = min(page.x for page in self.pagelist)
-		min_y = min(page.y for page in self.pagelist)
-		max_x = max(page.x for page in self.pagelist)
-		max_y = max(page.y for page in self.pagelist)
-		
-		print '(min_x,min_y,max_x,max_y)=({},{},{},{})'.format(min_x,min_y,max_x,max_y)
 		return (self.bbox.startx+min(page.x for page in self.pagelist)*self.bbox.width,
 				self.bbox.starty+min(page.y for page in self.pagelist)*self.bbox.width*self.bbox.ratio,
 				self.bbox.startx+(max(page.x for page in self.pagelist)+1)*self.bbox.width,
