@@ -55,8 +55,8 @@ if __name__ == "__main__":
 				skippedmaps.append(int(numbers))
 		
 	sheet = Sheet(opts.pagewidth, opts.pageheight, opts.pagepadding)
-	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio) 
-	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=False), bbox, sheet, dpi=300.)
+	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio, opts.overwidth) 
+	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=False), bbox, sheet, dpi=opts.dpi)
 	mybook = Book(opts.outputfile,myarea,opts.mapfile,font='PT Sans')
 	mybook.create_preface()
 	mybook.create_maps()

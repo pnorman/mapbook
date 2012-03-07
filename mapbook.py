@@ -56,7 +56,7 @@ class Book:
 		self._ctx.set_line_width(1)
 		self._ctx.set_source_rgb(0.5, 0.5, 0.5)		
 		for page in self.area.pagelist:
-			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.bounds(page),self.area.left_extent())
+			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.map_bounds(page),self.area.left_extent())
 		self._ctx.stroke()
 		
 		self._ctx.show_page()
@@ -71,7 +71,7 @@ class Book:
 		self._ctx.set_line_width(1)
 		self._ctx.set_source_rgb(0.5, 0.5, 0.5)		
 		for page in self.area.pagelist:
-			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.bounds(page),self.area.right_extent())
+			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.map_bounds(page),self.area.right_extent())
 		self._ctx.stroke()
 		
 		self._ctx.show_page()		
@@ -325,7 +325,11 @@ class Bbox:
 				raise ValueError('A string parameter for overwidth must be a percentage')
 		else:
 			raise TypeError('a float or string is required for overwidth')
-
+	
+	def map_bounds(self, page):
+		return (self.startx + page.x*self.width, self.starty + page.y*self.width*self.ratio,
+		self.startx + (page.x+1)*self.width, self. starty + (page.y+1)*self.width*self.ratio)
+		
 	def bounds(self,page):
 		'''
 		Returns the bounds, given an (x,y) to offset by
