@@ -28,6 +28,12 @@ import types
 POINTS_PER_INCH = 72.0
 BASE_PPI = 90.7
 
+DEBUG = 2
+'''
+1 = debugging statements
+2 = adjust rendering to make mistakes more visible
+3 = both
+'''
 class Book:
 	def __init__(self, fobj, area, mapfile, font = 'Sans'):
 
@@ -39,11 +45,15 @@ class Book:
 		self.font = font
 		
 		# Setup mapnik
-		self._m=mapnik.Map(*(self.area.map_size))
+		self._m=mapnik.Map(*(self.area.pagesize_pixels))
+		
 		self._m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
+			
 		self._im=mapnik.Image(*(self.area.pagesize_pixels))
-		mapnik.load_map(self._m,mapfile) # Fixme: specify srs?	
-				
+		mapnik.load_map(self._m,mapfile) # Fixme: specify srs?
+		
+		self._m.buffer_size = int(0.5*self.area.pagesize_pixels[0])
+		
 	
 	def create_preface(self):
 		
@@ -69,7 +79,7 @@ class Book:
 		self._ctx.stroke()
 
 		self._ctx.set_line_width(1)
-		self._ctx.set_source_rgb(0.5, 0.5, 0.5)		
+		self._ctx.set_source_rgb(0.5, 0.5, 0.5)
 		for page in self.area.pagelist:
 			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.map_bounds(page),self.area.right_extent())
 		self._ctx.stroke()
@@ -115,17 +125,18 @@ class Book:
 		self._ctx.show_page()
 
 	def _render_map(self, page, bbox):
+		print bbox
 		self._m.zoom_to_box(bbox)
 		mapnik.render(self._m,self._im,self.area.scale)
 		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
 		self._im.save(imagefile.name)
-		
 		# Set up the cairo ImageSurface
 		imgsurface = cairo.ImageSurface.create_from_png(imagefile)
-
+		
 		self._ctx.save()
 		self.area.sheet.draw_inset(self._ctx,page)
 		self._ctx.clip()
+		
 		self._ctx.scale(POINTS_PER_INCH/self.area.dpi,POINTS_PER_INCH/self.area.dpi)
 		self._ctx.set_source_surface(imgsurface)
 		self._ctx.paint()
