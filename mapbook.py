@@ -20,8 +20,6 @@
 import mapnik2 as mapnik
 
 import cairo
-import pango
-import pangocairo
 import tempfile
 import types
 
