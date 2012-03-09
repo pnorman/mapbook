@@ -5,7 +5,7 @@
 # An example mapbook config for part of Vancouver, BC
 
 # Bottom left corner. Approximately 49.2026N 123.1396W
-starty 6309900
+starty 6308800
 startx -13723000
 
 # Approximately width*cos(49) real meters
