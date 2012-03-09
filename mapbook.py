@@ -26,15 +26,9 @@ import types
 POINTS_PER_INCH = 72.0
 BASE_PPI = 90.7
 
-DEBUG = 2
-'''
-1 = debugging statements
-2 = adjust rendering to make mistakes more visible
-3 = both
-'''
+
 class Book:
 	def __init__(self, fobj, area, mapfile, font = 'Sans'):
-
 		# Setup cairo
 		self.area = area
 		self.mapfile = mapfile
@@ -50,11 +44,9 @@ class Book:
 		self._im=mapnik.Image(*(self.area.pagesize_pixels))
 		mapnik.load_map(self._m,mapfile) # Fixme: specify srs?
 		
-		self._m.buffer_size = int(0.5*self.area.pagesize_pixels[0])
-		
+		self._m.buffer_size = int(0.5*self.area.pagesize_pixels[0])	
 	
 	def create_preface(self):
-		
 		self._render_map(Page(None, None, None, False), self.area.left_extent())
 		self._ctx.set_line_width(.4)
 		self._ctx.set_source_rgb(0, 0, 0)
@@ -62,11 +54,19 @@ class Book:
 		self._ctx.stroke()
 
 		self._ctx.set_line_width(1)
-		self._ctx.set_source_rgb(0.5, 0.5, 0.5)		
+		self._ctx.set_source_rgb(0.5, 0.5, 0.5)
 		for page in self.area.pagelist:
-			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.map_bounds(page),self.area.left_extent())
+			self.area.sheet.draw_bbox(self._ctx, self.area.bbox.map_bounds(page), self.area.left_extent())
 		self._ctx.stroke()
-		
+
+		self._ctx.set_source_rgb(.25, .25, .25)
+		self._ctx.select_font_face(self.font)		
+		self._ctx.set_font_size(12)
+		for page in self.area.pagelist:
+			self.area.sheet.move_to_center(self._ctx, self.area.bbox.map_bounds(page),self.area.left_extent())
+			print_centered_text(self._ctx, str(page.number))
+		self._ctx.stroke()
+
 		self._ctx.show_page()
 		
 		self._render_map(Page(None, None, None, True), self.area.right_extent())
@@ -82,6 +82,14 @@ class Book:
 			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.map_bounds(page),self.area.right_extent())
 		self._ctx.stroke()
 		
+		self._ctx.set_source_rgb(.25, .25, .25)
+		self._ctx.select_font_face(self.font)		
+		self._ctx.set_font_size(12)
+		for page in self.area.pagelist:
+			self.area.sheet.move_to_center(self._ctx, self.area.bbox.map_bounds(page),self.area.right_extent())
+			print_centered_text(self._ctx, str(page.number))
+		self._ctx.stroke()
+		
 		self._ctx.show_page()		
 		
 	def create_index(self):
@@ -93,32 +101,41 @@ class Book:
 			self._render_page(page)
 			
 	def _render_page(self, page):
+	
+		# Draw the map and the inset line
 		self._render_map(page, self.area.full_bounds(page))
-		
 		self._ctx.set_line_width(.4)
 		self._ctx.set_source_rgb(0, 0, 0)
 		self.area.sheet.draw_inset(self._ctx,page)
 		self._ctx.stroke()
 		
+		# Draw the arrows indicating other pages
 		self._ctx.set_source_rgb(0., 0., 0.)
 		self._render_arrow_path(page)
 		self._ctx.fill()
 		
+		# Draw the numbers indicating other pages
 		self._ctx.set_source_rgb(1., 1., 1.)
 		self._ctx.select_font_face(self.font)
 		self._ctx.set_font_size(self.area.sheet.padding*.4)
 		self._render_arrow_text(page)
 		self._ctx.stroke()
 		
+		# Draw the current page number background
 		self._ctx.set_source_rgb(0., 0., 0.)
 		self._render_number_path(page)
 		self._ctx.fill()
 		
+		# Draw the page number text
 		self._ctx.set_source_rgb(1., 1., 1.) 
 		self._ctx.select_font_face(self.font)
 		self._ctx.set_font_size(self.area.sheet.padding*.8)
 		self._render_number_text(page)
 		self._ctx.stroke()
+		
+		# Draw the title bar
+		
+		# Draw the title bar text
 		
 		self._ctx.show_page()
 
@@ -388,6 +405,16 @@ class Sheet:
 							self._x_location_from_bounds(bbox[2], extents), 
 							self._y_location_from_bounds(bbox[3], extents))
 		ctx.rectangle(bounds_on_page[0], bounds_on_page[1], bounds_on_page[2]-bounds_on_page[0], bounds_on_page[3]-bounds_on_page[1])
+	
+	def move_to_center(self, ctx, bbox, extents):
+		'''
+		Move to the center of a bbox
+		'''
+		bounds_on_page =	(self._x_location_from_bounds(bbox[0], extents), 
+							self._y_location_from_bounds(bbox[1], extents), 
+							self._x_location_from_bounds(bbox[2], extents), 
+							self._y_location_from_bounds(bbox[3], extents))
+		ctx.move_to((bounds_on_page[0]+bounds_on_page[2])/2, (bounds_on_page[1]+bounds_on_page[3])/2)
 		
 	def _x_location_from_bounds(self, x, bounds):
 		return float(x-bounds[0])/(bounds[2]-bounds[0])*self.pagewidth
