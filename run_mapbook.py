@@ -1,9 +1,8 @@
 # encoding: utf-8
 from mapbook import *
 
+import argparse
 if __name__ == "__main__":
-	import argparse
-	
 	class LineArgumentParser(argparse.ArgumentParser):
 		def convert_arg_line_to_args(self, arg_line):
 			
@@ -27,8 +26,8 @@ if __name__ == "__main__":
 	# Page layout options
 	parser.add_argument('--pagewidth', type=float, help='Page width in points. Should be <= physical page width',required=True)
 	parser.add_argument('--pageheight', type=float, help='Page height in points. Should be <= physical page height',required=True)
-	parser.add_argument('--pagepadding', type=float, help='Padding around the edges of each map',default=15.)
 
+	parser.add_argument('--title', help='Title of the map')
 	# File options
 	parser.add_argument('--mapfile',help='Mapnik XML file',default='osm.xml')
 	parser.add_argument('--outputfile',help='Name of PDF file to create',default='map.pdf')
@@ -43,11 +42,10 @@ if __name__ == "__main__":
 	parser.add_argument('--firstpage',type=int,help='Page number of first page', default=1)
 	parser.add_argument('--blankfirst',action='store_true',help='Insert an empty page at the beginning of the PDF',default=False)
 	parser.add_argument('--dpi',type=float,help='DPI of mapnik image', default=300.)
+	create_example(opts)
 	
+def create_example(opts)	
 	opts=parser.parse_args()
-	
-	print opts
-	
 	# Build a list of pages to skip
 	skippedmaps = []
 	if opts.skip:
@@ -55,14 +53,14 @@ if __name__ == "__main__":
 			for numbers in options.split(','):
 				skippedmaps.append(int(numbers))
 		
-	sheet = Sheet(opts.pagewidth, opts.pageheight, opts.pagepadding)
+	sheet = Sheet(opts.pagewidth, opts.pageheight, 15.)
 	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio, opts.overwidth) 
 	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=False), bbox, sheet, dpi=opts.dpi)
 	appearance = Appearance(opts.mapfile,
 	TextSettings((1., 1., 1.), 'PT Sans', .4, (0., 0., 0.)), 
 	TextSettings((.25, .25, .25), 'PT Sans', 3.0, (.5, .5, .5)), 
 	TextSettings((0., 0., 0.), 'PT Sans', .6, (0., 0., 0.)), 
-	Text((0., 0., 0.), 'PT Sans', 1, (0., 0., 0.),'Vancouver'))
+	Text((0., 0., 0.), 'PT Sans', 1, (0., 0., 0.),opts.title))
 	
 	mybook = Book(opts.outputfile,myarea,appearance)
 	mybook.create_title()
@@ -72,4 +70,3 @@ if __name__ == "__main__":
 	mybook.insert_blank_page()
 	mybook.insert_blank_page()
 	mybook._surface.finish()
-	
