@@ -61,10 +61,15 @@ if __name__ == "__main__":
 	appearance = Appearance(opts.mapfile,
 	TextSettings((1., 1., 1.), 'PT Sans', .4, (0., 0., 0.)), 
 	TextSettings((.25, .25, .25), 'PT Sans', 3.0, (.5, .5, .5)), 
-	TextSettings((0., 0., 0.), 'PT Sans', .6, (0., 0., 0.)), '© OpenStreetMap contributors, CC BY-SA')
+	TextSettings((0., 0., 0.), 'PT Sans', .6, (0., 0., 0.)), 
+	Text((0., 0., 0.), 'PT Sans', 1, (0., 0., 0.),'Vancouver'))
 	
 	mybook = Book(opts.outputfile,myarea,appearance)
+	mybook.create_title()
 	mybook.create_preface()
 	mybook.create_maps()
+	mybook.create_attribution()
+	mybook.insert_blank_page()
+	mybook.insert_blank_page()
 	mybook._surface.finish()
 	

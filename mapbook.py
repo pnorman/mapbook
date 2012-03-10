@@ -43,12 +43,18 @@ class Book:
 		self._im=mapnik.Image(*(self.area.pagesize_pixels))
 		mapnik.load_map(self._m,self.appearance.mapfile) # Fixme: specify srs?
 		
-		self._m.buffer_size = int(0.5*self.area.pagesize_pixels[0])	
-	
+		self._m.buffer_size = int(0.5*max(self.area.pagesize_pixels[0],self.area.pagesize_pixels[1]))	
+		
+	def create_title(self):
+		self.appearance.title.set_context(self._ctx, 12)
+		self._ctx.move_to(self.area.sheet.pagewidth*.5, self.area.sheet.pageheight*0.33)
+		print_centered_text(self._ctx, self.appearance.title.text)
+		self._ctx.show_page()
+		
 	def create_preface(self):
 		self._render_map(Page(None, None, None, False), self.area.left_extent())
 		self._ctx.set_line_width(.4)
-		self._ctx.set_source_rgb(0, 0, 0)
+		self._ctx.set_source_rgb(0., 0., 0.)
 		self.area.sheet.draw_inset(self._ctx,Page(None, None, None, False))
 		self._ctx.stroke()
 
@@ -67,15 +73,15 @@ class Book:
 		self._ctx.stroke()
 
 		# Draw the title bar
-		self._ctx.set_source_rgb(*(self.appearance.titletext.background))		
+		self._ctx.set_source_rgb(*(self.appearance.header.background))		
 		self._render_title_path(Page(None, None, None, False))
 		self._ctx.stroke()
 		
-		self._ctx.set_source_rgb(*(self.appearance.titletext.colour))
-		self._ctx.select_font_face(self.appearance.titletext.font)		
-		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.titletext.scale)
+		self._ctx.set_source_rgb(*(self.appearance.header.colour))
+		self._ctx.select_font_face(self.appearance.header.font)		
+		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.header.scale)
 		self._ctx.move_to(self.area.sheet.page_inset(Page(None, None, None, False))[0]+.25*self.area.sheet.page_inset(Page(None, None, None, False))[2]-self.area.sheet.padding, 0.5*self.area.sheet.padding)
-		print_centered_text(self._ctx, self.appearance.title)
+		print_centered_text(self._ctx, self.appearance.title.text)
 		self._ctx.show_page()
 		
 		self._render_map(Page(None, None, None, True), self.area.right_extent())
@@ -100,26 +106,38 @@ class Book:
 		self._ctx.stroke()
 
 		# Draw the title bar
-		self._ctx.set_source_rgb(*(self.appearance.titletext.background))		
+		self._ctx.set_source_rgb(*(self.appearance.header.background))		
 		self._render_title_path(Page(None, None, None, True))
 		self._ctx.stroke()
 		
-		self._ctx.set_source_rgb(*(self.appearance.titletext.colour))
-		self._ctx.select_font_face(self.appearance.titletext.font)		
-		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.titletext.scale)
+		self._ctx.set_source_rgb(*(self.appearance.header.colour))
+		self._ctx.select_font_face(self.appearance.header.font)		
+		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.header.scale)
 		self._ctx.move_to(self.area.sheet.page_inset(Page(None, None, None, True))[0]+.75*self.area.sheet.page_inset(Page(None, None, None, True))[2]+self.area.sheet.padding, 0.5*self.area.sheet.padding)
-		print_centered_text(self._ctx, self.appearance.title)
+		print_centered_text(self._ctx, self.appearance.title.text)
 		
-		self._ctx.show_page()		
-		
-	def create_index(self):
-		pass
-	
+		self._ctx.show_page()
+			
 	def create_maps(self):
 		for page in self.area.pagelist:
 			print "Rendering page {}".format(page.number)
 			self._render_page(page)
 			
+	def create_index(self):
+		pass
+
+	def insert_blank_page(self):
+		self._ctx.show_page()
+	
+	def create_attribution(self):
+		attribution = 'Copyright OpenStreetMap contributors, CC BY-SA'
+		self.appearance.title.set_context(self._ctx, 12)
+		self._ctx.move_to(self.area.sheet.pagewidth*.5, self.area.sheet.pageheight*0.33)
+		print_centered_text(self._ctx, attribution)
+		self._ctx.move_to(self.area.sheet.pagewidth*.5, self.area.sheet.pageheight*0.33+16)
+		print_centered_text(self._ctx, 'mapbook software Copyright 2012 Paul Norman, GPL v3')
+		self._ctx.show_page()
+	
 	def _render_page(self, page):
 	
 		# Draw the map and the inset line
@@ -154,26 +172,24 @@ class Book:
 		self._ctx.stroke()
 		
 		# Draw the title bar
-		self._ctx.set_source_rgb(*(self.appearance.titletext.background))		
+		self._ctx.set_source_rgb(*(self.appearance.header.background))		
 		self._render_title_path(page)
 		self._ctx.stroke()
-		
-		
+				
 		# Draw the title bar text
-		self._ctx.set_source_rgb(*(self.appearance.titletext.colour))
-		self._ctx.select_font_face(self.appearance.titletext.font)		
-		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.titletext.scale)
+		self._ctx.set_source_rgb(*(self.appearance.header.colour))
+		self._ctx.select_font_face(self.appearance.header.font)		
+		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.header.scale)
 		if page.right:
 			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+.75*self.area.sheet.page_inset(page)[2]+self.area.sheet.padding, 0.5*self.area.sheet.padding)
 		else:
 			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+.25*self.area.sheet.page_inset(page)[2]-self.area.sheet.padding, 0.5*self.area.sheet.padding)
 
-		print_centered_text(self._ctx, self.appearance.title)
+		print_centered_text(self._ctx, self.appearance.title.text)
 		
 		self._ctx.show_page()
 
 	def _render_map(self, page, bbox):
-		print bbox
 		self._m.zoom_to_box(bbox)
 		mapnik.render(self._m,self._im,self.area.scale)
 		imagefile=tempfile.NamedTemporaryFile(suffix='.png',delete=True)
@@ -271,16 +287,17 @@ class Book:
 			self._ctx.line_to(self.area.sheet.page_inset(page)[0]+.5*self.area.sheet.page_inset(page)[2]-self.area.sheet.padding*2, 0)
 			self._ctx.line_to(self.area.sheet.page_inset(page)[0], 0)
 			self._ctx.line_to(self.area.sheet.page_inset(page)[0], self.area.sheet.padding)	
+
 	def _render_title_text(self, page):
 		pass
 		
 class Appearance:
-	def __init__(self, mapfile, sidetext, overviewtext, titletext, title):
+	def __init__(self, mapfile, sidetext, overviewtext, header, title):
 		self.mapfile = mapfile
 		self.sidetext = sidetext
 		self.overviewtext = overviewtext
-		self.titletext = titletext
-		self.title = str(title)
+		self.header = header
+		self.title = title
 		
 class TextSettings:
 	def __init__(self, colour, font, scale, background):
@@ -289,6 +306,19 @@ class TextSettings:
 		self.scale = scale
 		self.background = background
 		
+	def set_context(self, ctx, scale=1.):
+		ctx.set_source_rgb(*(self.colour))
+		ctx.select_font_face(self.font)	
+		ctx.set_font_size(scale*self.scale)
+	
+class Text(TextSettings):
+	def __init__(self, colour, font, scale, background, text):
+		self.colour = colour
+		self.font = font
+		self.scale = scale
+		self.background = background
+		self.text = str(text)
+
 class Area:
 	'''
 	It is an error if bbox.ratio and sheet.ratio do not match
