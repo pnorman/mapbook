@@ -160,6 +160,15 @@ class Book:
 		
 		
 		# Draw the title bar text
+		self._ctx.set_source_rgb(*(self.appearance.titletext.colour))
+		self._ctx.select_font_face(self.appearance.titletext.font)		
+		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.titletext.scale)
+		if page.right:
+			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+.75*self.area.sheet.page_inset(page)[2]+self.area.sheet.padding, 0.5*self.area.sheet.padding)
+		else:
+			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+.25*self.area.sheet.page_inset(page)[2]-self.area.sheet.padding, 0.5*self.area.sheet.padding)
+
+		print_centered_text(self._ctx, self.appearance.title)
 		
 		self._ctx.show_page()
 
