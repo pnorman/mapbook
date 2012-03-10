@@ -46,7 +46,7 @@ class Book:
 		self._m.buffer_size = int(0.5*max(self.area.pagesize_pixels[0],self.area.pagesize_pixels[1]))	
 		
 	def create_title(self):
-		self.appearance.title.set_context(self._ctx, 12)
+		self.appearance.title.set_context(self._ctx)
 		self._ctx.move_to(self.area.sheet.pagewidth*.5, self.area.sheet.pageheight*0.33)
 		print_centered_text(self._ctx, self.appearance.title.text)
 		self._ctx.show_page()
@@ -130,12 +130,14 @@ class Book:
 		self._ctx.show_page()
 	
 	def create_attribution(self):
-		attribution = 'Copyright OpenStreetMap contributors, CC BY-SA'
-		self.appearance.title.set_context(self._ctx, 12)
+		
+		self.appearance.attribution.set_context(self._ctx)
 		self._ctx.move_to(self.area.sheet.pagewidth*.5, self.area.sheet.pageheight*0.33)
-		print_centered_text(self._ctx, attribution)
-		self._ctx.move_to(self.area.sheet.pagewidth*.5, self.area.sheet.pageheight*0.33+16)
-		print_centered_text(self._ctx, 'mapbook software Copyright 2012 Paul Norman, GPL v3')
+		count = 1
+		for line in self.appearance.attribution.text.split('\n'):
+			print_centered_text(self._ctx, line)
+			self._ctx.move_to(self.area.sheet.pagewidth*.5, self.area.sheet.pageheight*0.33+count*self.appearance.attribution.scale)
+			count += 1
 		self._ctx.show_page()
 	
 	def _render_page(self, page):
@@ -292,12 +294,13 @@ class Book:
 		pass
 		
 class Appearance:
-	def __init__(self, mapfile, sidetext, overviewtext, header, title):
+	def __init__(self, mapfile, sidetext, overviewtext, header, title, attribution):
 		self.mapfile = mapfile
 		self.sidetext = sidetext
 		self.overviewtext = overviewtext
 		self.header = header
 		self.title = title
+		self.attribution = attribution
 		
 class TextSettings:
 	def __init__(self, colour, font, scale, background):
@@ -433,10 +436,10 @@ class Bbox:
 		self.ratio = float(ratio)
 		if type(overwidth) == types.FloatType:
 			self.overwidth = overwidth
-		elif type(overwidth) == types.StringTypes:
+		elif type(overwidth) == types.StringType:
 			if overwidth[-1] == '%':
 				try:
-					self.overwidth = float(overwidth[0,-1])
+					self.overwidth = float(overwidth[0:-1])
 				except TypeError:
 					raise ValueError('A string parameter for overwidth must be a percentage')
 			else:
@@ -556,8 +559,8 @@ class Pagelist:
 			for x in range(0,self.columns):
 				if number not in self.skip:
 					yield Page(x,y,number,bool(pagecount % 2))
+					pagecount += 1
 				number += 1
-				pagecount += 1
 
 class Page:
 	def __init__(self, x, y, number,right):

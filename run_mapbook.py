@@ -1,7 +1,40 @@
 # encoding: utf-8
 from mapbook import *
-
+import math
 import argparse
+
+	
+def create_example(opts):
+	# Build a list of pages to skip
+	skippedmaps = []
+	if opts.skip:
+		for options in opts.skip:
+			for numbers in options.split(','):
+				skippedmaps.append(int(numbers))
+	
+	sheet = Sheet(opts.pagewidth, opts.pageheight, 15.)
+
+	mapwidth = opts.width/opts.columns
+	rows = int(math.ceil(opts.height/(mapwidth*sheet.ratio)))
+	print 'rows={}, cols={}'.format(rows, opts.columns)
+	bbox = Bbox(opts.startx, opts.starty, mapwidth, sheet.ratio, '4%')
+	myarea = Area(Pagelist(rows, opts.columns, 1, skippedmaps, right=False), bbox, sheet, dpi=opts.dpi)
+	
+	attribtext = 'Copyright OpenStreetMap contributors, CC BY-SA\nmapbook software Copyright 2012 Paul Norman, GPL v3\n\nSee www.openstreetmap.org for more information'
+	appearance = Appearance(	mapfile=opts.mapfile,
+								sidetext=TextSettings((1., 1., 1.), 'PT Sans Bold', .4, (0., 0., 0.)), 
+								overviewtext=TextSettings((.25, .25, .25), 'PT Sans', 3.0, (.5, .5, .5)), 
+								header=TextSettings((0., 0., 0.), 'PT Sans Bold', .6, (0., 0., 0.)), 
+								title=Text((0., 0., 0.), 'PT Sans', 48, (0., 0., 0.),opts.title),
+								attribution=Text((0., 0., 0.),'PT Sans', 12, (0., 0., 0.), attribtext))
+	
+	mybook = Book(opts.outputfile,myarea,appearance)
+	mybook.create_title()
+	mybook.create_preface()
+	mybook.create_maps()
+	mybook.create_attribution()
+	mybook._surface.finish()
+
 if __name__ == "__main__":
 	class LineArgumentParser(argparse.ArgumentParser):
 		def convert_arg_line_to_args(self, arg_line):
@@ -20,53 +53,24 @@ if __name__ == "__main__":
 	# Location-based options
 	parser.add_argument('--startx', type=float, help='West coordinate to map in mercator km',required=True)
 	parser.add_argument('--starty', type=float, help='South coordinate to map in mercator km',required=True)
-	parser.add_argument('--width', type=float, help='Width in mercator km of a map page',required=True)
-	parser.add_argument('--overwidth', type=float, help='Width in mercator km to add to each side', default=0.)
+	parser.add_argument('--width', type=float, help='Width in mercator km of the overall map',required=True)
+	parser.add_argument('--height', type=float, help='Target height in mercator km of the overall map',required=True)
+	parser.add_argument('--columns',type=int,help='Number of columns of maps', default=4)
 	
 	# Page layout options
-	parser.add_argument('--pagewidth', type=float, help='Page width in points. Should be <= physical page width',required=True)
-	parser.add_argument('--pageheight', type=float, help='Page height in points. Should be <= physical page height',required=True)
+	parser.add_argument('--pagewidth', type=float, help='Page width in points. Should be <= physical page width. Default is 8.5x11 portrait.',default=612.)
+	parser.add_argument('--pageheight', type=float, help='Page height in points. Should be <= physical page height. Default is 8.5x11 portrait.',default=792)
 
-	parser.add_argument('--title', help='Title of the map')
+	parser.add_argument('--title', help='Title of the map',default='A mapbook map')
+
 	# File options
 	parser.add_argument('--mapfile',help='Mapnik XML file',default='osm.xml')
 	parser.add_argument('--outputfile',help='Name of PDF file to create',default='map.pdf')
 	
 	# Grid options
-	parser.add_argument('--rows',type=int,help='Number of rows of maps', default=1)
-	parser.add_argument('--columns',type=int,help='Number of columns of maps', default=1)
-	parser.add_argument('--firstmap',type=int,help='Number of first map', default=1)
-	parser.add_argument('--skip',action='append',help='Comma-seperated list of map numbers to skip. May be specified multiple times')
+	parser.add_argument('--skip',action='append',help='Comma-seperated list of map numbers to skip. May be specified multiple times', default='')
 	
 	# Page options
-	parser.add_argument('--firstpage',type=int,help='Page number of first page', default=1)
-	parser.add_argument('--blankfirst',action='store_true',help='Insert an empty page at the beginning of the PDF',default=False)
 	parser.add_argument('--dpi',type=float,help='DPI of mapnik image', default=300.)
-	create_example(opts)
-	
-def create_example(opts)	
 	opts=parser.parse_args()
-	# Build a list of pages to skip
-	skippedmaps = []
-	if opts.skip:
-		for options in opts.skip:
-			for numbers in options.split(','):
-				skippedmaps.append(int(numbers))
-		
-	sheet = Sheet(opts.pagewidth, opts.pageheight, 15.)
-	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio, opts.overwidth) 
-	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=False), bbox, sheet, dpi=opts.dpi)
-	appearance = Appearance(opts.mapfile,
-	TextSettings((1., 1., 1.), 'PT Sans', .4, (0., 0., 0.)), 
-	TextSettings((.25, .25, .25), 'PT Sans', 3.0, (.5, .5, .5)), 
-	TextSettings((0., 0., 0.), 'PT Sans', .6, (0., 0., 0.)), 
-	Text((0., 0., 0.), 'PT Sans', 1, (0., 0., 0.),opts.title))
-	
-	mybook = Book(opts.outputfile,myarea,appearance)
-	mybook.create_title()
-	mybook.create_preface()
-	mybook.create_maps()
-	mybook.create_attribution()
-	mybook.insert_blank_page()
-	mybook.insert_blank_page()
-	mybook._surface.finish()
+	create_example(opts)

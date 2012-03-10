@@ -9,22 +9,14 @@ starty 6308800
 startx -13723000
 
 # Approximately width*cos(49) real meters
-width 7621
-overwidth 176
-
-#Number of rows (x dir)
-rows 2
+width 30000
+height 18000
 
 #Number of columns (y dir)
 columns 4
 
-firstpage 1
-
 # about 6.5x8.0
 # 1/2 legal, minus a border of 13pt on the top and 16pt on the sides
-
-pagewidth 472
-pageheight 586
 
 #mapfile /home/pnorman/osm/mapnik/mapnik-style/osm.xml
 mapfile /home/pnorman/osm/mapnik/MapQuest-Mapnik-Print-Style/mapquest-us2.xml
