@@ -1,3 +1,4 @@
+# encoding: utf-8
 from mapbook import *
 
 if __name__ == "__main__":
@@ -57,7 +58,12 @@ if __name__ == "__main__":
 	sheet = Sheet(opts.pagewidth, opts.pageheight, opts.pagepadding)
 	bbox = Bbox(opts.startx, opts.starty, opts.width, sheet.ratio, opts.overwidth) 
 	myarea = Area(Pagelist(opts.rows, opts.columns, opts.firstpage, skippedmaps, right=False), bbox, sheet, dpi=opts.dpi)
-	mybook = Book(opts.outputfile,myarea,opts.mapfile,font='PT Sans')
+	appearance = Appearance(opts.mapfile,
+	TextSettings((1., 1., 1.), 'PT Sans', .4, (0., 0., 0.)), 
+	TextSettings((.25, .25, .25), 'PT Sans', 3.0, (.5, .5, .5)), 
+	TextSettings((0., 0., 0.), 'PT Sans', .6, (0., 0., 0.)), '© OpenStreetMap contributors, CC BY-SA')
+	
+	mybook = Book(opts.outputfile,myarea,appearance)
 	mybook.create_preface()
 	mybook.create_maps()
 	mybook._surface.finish()

@@ -1,4 +1,4 @@
-﻿'''
+'''
 	This file is part of mapbook.
 
 	mapbook is free software: you can redistribute it and/or modify
@@ -28,13 +28,12 @@ BASE_PPI = 90.7
 
 
 class Book:
-	def __init__(self, fobj, area, mapfile, font = 'Sans'):
+	def __init__(self, fobj, area, appearance):
 		# Setup cairo
 		self.area = area
-		self.mapfile = mapfile
 		self._surface=cairo.PDFSurface(fobj,*(self.area.pagesize_points))
 		self._ctx = cairo.Context(self._surface)
-		self.font = font
+		self.appearance = appearance
 		
 		# Setup mapnik
 		self._m=mapnik.Map(*(self.area.pagesize_pixels))
@@ -42,7 +41,7 @@ class Book:
 		self._m.aspect_fix_mode=mapnik.aspect_fix_mode.GROW_BBOX
 			
 		self._im=mapnik.Image(*(self.area.pagesize_pixels))
-		mapnik.load_map(self._m,mapfile) # Fixme: specify srs?
+		mapnik.load_map(self._m,self.appearance.mapfile) # Fixme: specify srs?
 		
 		self._m.buffer_size = int(0.5*self.area.pagesize_pixels[0])	
 	
@@ -53,20 +52,30 @@ class Book:
 		self.area.sheet.draw_inset(self._ctx,Page(None, None, None, False))
 		self._ctx.stroke()
 
-		self._ctx.set_line_width(1)
-		self._ctx.set_source_rgb(0.5, 0.5, 0.5)
+		self._ctx.set_line_width(.4)
+		self._ctx.set_source_rgb(*(self.appearance.overviewtext.background))
 		for page in self.area.pagelist:
 			self.area.sheet.draw_bbox(self._ctx, self.area.bbox.map_bounds(page), self.area.left_extent())
 		self._ctx.stroke()
 
-		self._ctx.set_source_rgb(.25, .25, .25)
-		self._ctx.select_font_face(self.font)		
-		self._ctx.set_font_size(12)
+		self._ctx.set_source_rgb(*(self.appearance.overviewtext.colour))
+		self._ctx.select_font_face(self.appearance.overviewtext.font)		
+		self._ctx.set_font_size(12*self.appearance.overviewtext.scale)
 		for page in self.area.pagelist:
 			self.area.sheet.move_to_center(self._ctx, self.area.bbox.map_bounds(page),self.area.left_extent())
 			print_centered_text(self._ctx, str(page.number))
 		self._ctx.stroke()
 
+		# Draw the title bar
+		self._ctx.set_source_rgb(*(self.appearance.titletext.background))		
+		self._render_title_path(Page(None, None, None, False))
+		self._ctx.stroke()
+		
+		self._ctx.set_source_rgb(*(self.appearance.titletext.colour))
+		self._ctx.select_font_face(self.appearance.titletext.font)		
+		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.titletext.scale)
+		self._ctx.move_to(self.area.sheet.page_inset(Page(None, None, None, False))[0]+.25*self.area.sheet.page_inset(Page(None, None, None, False))[2]-self.area.sheet.padding, 0.5*self.area.sheet.padding)
+		print_centered_text(self._ctx, self.appearance.title)
 		self._ctx.show_page()
 		
 		self._render_map(Page(None, None, None, True), self.area.right_extent())
@@ -76,19 +85,30 @@ class Book:
 		self.area.sheet.draw_inset(self._ctx,Page(None, None, None, True))
 		self._ctx.stroke()
 
-		self._ctx.set_line_width(1)
-		self._ctx.set_source_rgb(0.5, 0.5, 0.5)
+		self._ctx.set_line_width(.4)
+		self._ctx.set_source_rgb(*(self.appearance.overviewtext.background))
 		for page in self.area.pagelist:
 			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.map_bounds(page),self.area.right_extent())
 		self._ctx.stroke()
 		
-		self._ctx.set_source_rgb(.25, .25, .25)
-		self._ctx.select_font_face(self.font)		
-		self._ctx.set_font_size(12)
+		self._ctx.set_source_rgb(*(self.appearance.overviewtext.colour))
+		self._ctx.select_font_face(self.appearance.overviewtext.font)		
+		self._ctx.set_font_size(12*self.appearance.overviewtext.scale)
 		for page in self.area.pagelist:
 			self.area.sheet.move_to_center(self._ctx, self.area.bbox.map_bounds(page),self.area.right_extent())
 			print_centered_text(self._ctx, str(page.number))
 		self._ctx.stroke()
+
+		# Draw the title bar
+		self._ctx.set_source_rgb(*(self.appearance.titletext.background))		
+		self._render_title_path(Page(None, None, None, True))
+		self._ctx.stroke()
+		
+		self._ctx.set_source_rgb(*(self.appearance.titletext.colour))
+		self._ctx.select_font_face(self.appearance.titletext.font)		
+		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.titletext.scale)
+		self._ctx.move_to(self.area.sheet.page_inset(Page(None, None, None, True))[0]+.75*self.area.sheet.page_inset(Page(None, None, None, True))[2]+self.area.sheet.padding, 0.5*self.area.sheet.padding)
+		print_centered_text(self._ctx, self.appearance.title)
 		
 		self._ctx.show_page()		
 		
@@ -110,30 +130,34 @@ class Book:
 		self._ctx.stroke()
 		
 		# Draw the arrows indicating other pages
-		self._ctx.set_source_rgb(0., 0., 0.)
+		self._ctx.set_source_rgb(*(self.appearance.sidetext.background))
 		self._render_arrow_path(page)
 		self._ctx.fill()
 		
 		# Draw the numbers indicating other pages
-		self._ctx.set_source_rgb(1., 1., 1.)
-		self._ctx.select_font_face(self.font)
-		self._ctx.set_font_size(self.area.sheet.padding*.4)
+		self._ctx.set_source_rgb(*(self.appearance.sidetext.colour))
+		self._ctx.select_font_face(self.appearance.sidetext.font)
+		self._ctx.set_font_size(self.area.sheet.padding*self.appearance.sidetext.scale)
 		self._render_arrow_text(page)
 		self._ctx.stroke()
 		
 		# Draw the current page number background
-		self._ctx.set_source_rgb(0., 0., 0.)
+		self._ctx.set_source_rgb(*(self.appearance.sidetext.background))
 		self._render_number_path(page)
 		self._ctx.fill()
 		
 		# Draw the page number text
-		self._ctx.set_source_rgb(1., 1., 1.) 
-		self._ctx.select_font_face(self.font)
+		self._ctx.set_source_rgb(*(self.appearance.sidetext.colour)) 
+		self._ctx.select_font_face(self.appearance.sidetext.font)
 		self._ctx.set_font_size(self.area.sheet.padding*.8)
 		self._render_number_text(page)
 		self._ctx.stroke()
 		
 		# Draw the title bar
+		self._ctx.set_source_rgb(*(self.appearance.titletext.background))		
+		self._render_title_path(page)
+		self._ctx.stroke()
+		
 		
 		# Draw the title bar text
 		
@@ -226,7 +250,36 @@ class Book:
 		else:
 			self._ctx.move_to(2*self.area.sheet.padding, self.area.sheet.pageheight-0.5*self.area.sheet.padding)
 		print_centered_text(self._ctx, str(page.number))
-	
+		
+	def _render_title_path(self, page):
+		if page.right:
+			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+.5*self.area.sheet.page_inset(page)[2]+self.area.sheet.padding*2, self.area.sheet.padding)
+			self._ctx.line_to(self.area.sheet.page_inset(page)[0]+.5*self.area.sheet.page_inset(page)[2]+self.area.sheet.padding*2, 0)
+			self._ctx.line_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2], 0)
+			self._ctx.line_to(self.area.sheet.page_inset(page)[0]+self.area.sheet.page_inset(page)[2], self.area.sheet.padding)
+		else:
+			self._ctx.move_to(self.area.sheet.page_inset(page)[0]+.5*self.area.sheet.page_inset(page)[2]-self.area.sheet.padding*2, self.area.sheet.padding)
+			self._ctx.line_to(self.area.sheet.page_inset(page)[0]+.5*self.area.sheet.page_inset(page)[2]-self.area.sheet.padding*2, 0)
+			self._ctx.line_to(self.area.sheet.page_inset(page)[0], 0)
+			self._ctx.line_to(self.area.sheet.page_inset(page)[0], self.area.sheet.padding)	
+	def _render_title_text(self, page):
+		pass
+		
+class Appearance:
+	def __init__(self, mapfile, sidetext, overviewtext, titletext, title):
+		self.mapfile = mapfile
+		self.sidetext = sidetext
+		self.overviewtext = overviewtext
+		self.titletext = titletext
+		self.title = str(title)
+		
+class TextSettings:
+	def __init__(self, colour, font, scale, background):
+		self.colour = colour
+		self.font = font
+		self.scale = scale
+		self.background = background
+		
 class Area:
 	'''
 	It is an error if bbox.ratio and sheet.ratio do not match
