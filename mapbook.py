@@ -97,6 +97,10 @@ class Book:
 			self.area.sheet.draw_bbox(self._ctx,self.area.bbox.map_bounds(page),self.area.right_extent())
 		self._ctx.stroke()
 		
+		overviewscale = min(2*self.area.map_size[0]/(max(p.x for p in self.area.pagelist)-min(p.x for p in self.area.pagelist)),
+							self.area.map_size[1]/(max(p.y for p in self.area.pagelist)-min(p.y for p in self.area.pagelist)))
+							
+		self.appearance.overviewtext.set_context(self._ctx, overviewscale)
 		self._ctx.set_source_rgb(*(self.appearance.overviewtext.colour))
 		self._ctx.select_font_face(self.appearance.overviewtext.font)		
 		self._ctx.set_font_size(12*self.appearance.overviewtext.scale)
@@ -306,7 +310,7 @@ class TextSettings:
 	def __init__(self, colour, font, scale, background):
 		self.colour = colour
 		self.font = font
-		self.scale = scale
+		self.scale = float(scale)
 		self.background = background
 		
 	def set_context(self, ctx, scale=1.):
