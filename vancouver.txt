@@ -19,5 +19,5 @@ columns 4
 # 1/2 legal, minus a border of 13pt on the top and 16pt on the sides
 
 #mapfile /home/pnorman/osm/mapnik/mapnik-style/osm.xml
-mapfile /home/pnorman/osm/mapnik/MapQuest-Mapnik-Print-Style/mapquest-us2.xml
+mapfile /home/pnorman/osm/mapnik/MapQuest-Mapnik-Style/mapquest-us.xml
 outputfile vancouver.pdf

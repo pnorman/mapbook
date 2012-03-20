@@ -40,7 +40,7 @@ def create_example(opts):
 	bbox = Bbox(opts.startx, opts.starty, mapwidth, sheet.ratio, '4%')
 	myarea = Area(Pagelist(rows, opts.columns, 1, skippedmaps, right=False), bbox, sheet, dpi=opts.dpi)
 	
-	attribtext = 'Copyright OpenStreetMap contributors, CC BY-SA\nmapbook software Copyright 2012 Paul Norman, GPL v3\n\nSee www.openstreetmap.org for more information'
+	attribtext = 'Copyright OpenStreetMap contributors, CC BY-SA\nSee www.openstreetmap.org for more information\n\nmapbook software Copyright 2012 Paul Norman, licensed under the GPL v3\nwww.openmapbook.org'
 	appearance = Appearance(	mapfile=opts.mapfile,
 								sidetext=TextSettings((1., 1., 1.), 'PT Sans Bold', .4, (0., 0., 0.)), 
 								overviewtext=TextSettings((.25, .25, .25), 'PT Sans', 3.0, (.5, .5, .5)), 
