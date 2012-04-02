@@ -17,8 +17,11 @@
 	Copyright 2012 Paul Norman
 '''
 
-import mapnik2 as mapnik
-
+try:
+	import mapnik2 as mapnik
+except:
+	import mapnik as mapnik
+    
 import cairo
 import tempfile
 import types
