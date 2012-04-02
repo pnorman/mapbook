@@ -36,7 +36,6 @@ def create_example(opts):
 
 	mapwidth = opts.width/opts.columns
 	rows = int(math.ceil(opts.height/(mapwidth*sheet.ratio)))
-	print 'rows={}, cols={}'.format(rows, opts.columns)
 	bbox = Bbox(opts.startx, opts.starty, mapwidth, sheet.ratio, '4%')
 	myarea = Area(Pagelist(rows, opts.columns, 1, skippedmaps, right=False), bbox, sheet, dpi=opts.dpi)
 	

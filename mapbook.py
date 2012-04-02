@@ -127,7 +127,7 @@ class Book:
 			
 	def create_maps(self):
 		for page in self.area.pagelist:
-			print "Rendering page {}".format(page.number)
+			print 'Rendering page ' + str(page.number)
 			self._render_page(page)
 			
 	def create_index(self):
